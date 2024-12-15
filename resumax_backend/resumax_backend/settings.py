@@ -24,6 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'resumax_algo',
+    'vectordb',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
