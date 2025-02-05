@@ -117,17 +117,24 @@
         </div>
         <div class="chat-box" id="chat-box">
             <!-- Dummy messages -->
-            <div class="message user-message">Hello! How can I help you today?</div>
-            <div class="message other-message">Hi! I need some information about your services.</div>
-            <div class="message user-message">Sure, what would you like to know?</div>
-            <div class="message other-message">Can you tell me more about your pricing?</div>
+            <div class="message other-message">Hello! How can I help you today?</div>
+            <div class="message user-message">Hi! I need some help with my resume.</div>
+            <div class="message other-message">Sure, please upload a copy of your resume and I'd be happy to take a look at it!</div>
         </div>
+        
+        <!-- Show when file has been added to message-->
+        <div id="file-icon-container" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+            </svg>
+            <span id="file-name"></span>
+        </div>
+
         <div class="input-container">
             <input type="text" id="chat-input" placeholder="Type a message...">
-            <input type="file" id="file-input" style="display: none;">
 
-            <!--currently asking for the file twice-->
-            <form method="POST" enctype="multipart/form-data">
+            <!-- TODO: check support for multiple files at once -->
+            <form id="chat-form" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="file" name="file" id="file" required style="display: none;">
                 <button type="button" id="file-upload-btn">
@@ -135,27 +142,44 @@
                         <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
                     </svg>
                 </button>
+                <button type="submit" id="send-btn">Send</button>
             </form>
             
-            <script>
-                document.getElementById('file-upload-btn').addEventListener('click', () => {
-                    document.getElementById('file').click();
-                });
-            </script>
-            <button id="send-btn">Send</button>
+            
+            
         </div>
     </div>
     <script>
-        document.getElementById('send-btn').addEventListener('click', sendMessage);
-document.getElementById('file-upload-btn').addEventListener('click', () => {
-    document.getElementById('file-input').click();
-});
-document.getElementById('file-input').addEventListener('change', uploadFile);
-document.getElementById('chat-input').addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') {
-        sendMessage();
-    }
-});
+        document.addEventListener('DOMContentLoaded', (event) => {
+        //localStorage.clear();
+        loadMessages();
+    });
+
+        document.getElementById('file-upload-btn').addEventListener('click', () => {
+            document.getElementById('file').click();
+    });
+
+    document.getElementById('file').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            document.getElementById('file-icon-container').style.display = 'flex';
+            document.getElementById('file-name').textContent = file.name;
+        } else {
+            document.getElementById('file-icon-container').style.display = 'none';
+            document.getElementById('file-name').textContent = '';
+        }
+    });
+
+        document.getElementById('send-btn').addEventListener('click', function(event) {
+            sendMessage();
+            uploadFile();
+        });
+
+    document.getElementById('chat-input').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            document.getElementById('send-btn').click();
+        }
+    });
 
 function sendMessage() {
     const chatBox = document.getElementById('chat-box');
@@ -169,21 +193,45 @@ function sendMessage() {
         chatBox.appendChild(messageElement);
         chatInput.value = '';
         chatBox.scrollTop = chatBox.scrollHeight;
+        saveMessage({ type: 'text', content: message });
     }
 }
 
-function uploadFile(event) {
+function uploadFile() {
     const chatBox = document.getElementById('chat-box');
-    const file = event.target.files[0];
+    //const file = event.target.files[0];
+    const fileName = document.getElementById('file-name').textContent;
 
-    if (file) {
+    if (fileName!='') {
         const fileElement = document.createElement('div');
         fileElement.classList.add('message', 'file-message');
-        fileElement.textContent = `File uploaded: ${file.name}`;
+        fileElement.textContent = `File uploaded: ${fileName}`;
         chatBox.appendChild(fileElement);
         chatBox.scrollTop = chatBox.scrollHeight;
+        saveMessage({ type: 'file', content: fileElement.textContent});
+        document.getElementById('file-icon-container').style.display = 'none';
+        document.getElementById('file-name').textContent = '';
     }
 }
+
+function saveMessage(message) {
+        let messages = JSON.parse(localStorage.getItem('messages')) || [];
+        messages.push(message);
+        localStorage.setItem('messages', JSON.stringify(messages));
+    }
+
+    function loadMessages() {
+        const messages = JSON.parse(localStorage.getItem('messages')) || [];
+        const chatBox = document.getElementById('chat-box');
+        messages.forEach(message => {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', message.type === 'text' ? 'user-message' : 'file-message');
+            messageElement.textContent = message.content;
+            chatBox.appendChild(messageElement);
+        });
+        chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom after loading messages
+
+    }
     </script>
 </body>
 </html>
