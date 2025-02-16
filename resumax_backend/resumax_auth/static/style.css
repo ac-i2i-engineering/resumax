@@ -127,7 +127,7 @@ input[type="submit"]:hover {
   position: relative;
 }
 .authentication-page-links-container{
-  margin-top: 1rem;
+  margin-top: 2rem;
 }
 .authentication-page-links-container, .server-messages{
   text-align: center;
@@ -145,12 +145,6 @@ input[type="submit"]:hover {
 }
 .server-messages .success{
   color: var(--app-green-1);
-}
-.forgot-password-page form >.authentication-page-links-container,.reset-password-page .authentication-page-links-container{
-    margin-top: 3rem !important;
-}
-.password-rest-sent-page .authentication-page-links-container >p{
-  margin: 1rem 0;
 }
 .authentication-page-links-container .important{
   color: var(--app-purple-2);

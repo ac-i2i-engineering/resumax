@@ -1,4 +1,3 @@
-from resumax_backend.credentials import EMAIL_VERIFICATION_API_KEY
 from django.contrib.auth import authenticate, login, logout
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
@@ -32,13 +31,6 @@ def RegisterView(request):
         # check if email already exists
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already exists.")
-            signup_data_has_error = True
-        # check if email is valid 
-        response = requests.get(f"https://emailvalidation.abstractapi.com/v1/?api_key={EMAIL_VERIFICATION_API_KEY}&email={email}").json()
-        is_smtp_valid = response['is_smtp_valid']['value']
-        is_deliverable = response['deliverability'] == "DELIVERABLE"
-        if not (is_smtp_valid and is_deliverable):
-            messages.error(request, "Couldn't verify email address, try again.")
             signup_data_has_error = True
         # check if password and confirm password match
         if password != confirm_password:
