@@ -19,4 +19,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('resumax_algo.urls')),
+    path('auth/', include('resumax_auth.urls')),
 ]

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load bootstrap_icons %}
+{% block title %}Login{% endblock %}
+  
+{% block content %}
+<div class="center">
+  <form method="POST">
+      <h1>Login</h1>
+      <div class="server-messages">
+        {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                <p class="error">{{message}}</p>
+            {% else %}
+                <p class="success">{{message}}</p>
+            {% endif %}
+        {% endfor %}
+        {% endif%}
+      </div>
+      {% csrf_token %}
+
+    <div class="input-field">
+      <input type="text" name="username" required placeholder="username or email">
+    </div>
+
+    <div class="input-field">
+      <input type="password" name="password" required placeholder="password">
+    </div>
+    <div class="submit-btn-container">
+      <input type="submit" value="LOGIN">
+    </div>
+    <div class="authentication-page-links-container">
+      <p>Not a member? <a class="important" href="{% url 'register' %}">Signup</a></p>
+    </div>
+  </form>
+</div>
+{% endblock %}
