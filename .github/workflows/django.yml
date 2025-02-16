@@ -1,0 +1,49 @@
+name: Pytest + CI/CD 
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+      - '*/*'
+      - '*'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Run Unit Tests with pytest framework and generate coverage report
+      working-directory: ./resumax_backend
+      run: |
+        pytest --cov --cov-config=.coveragerc --cov-fail-under=90
+    - name: Coveralls workflow
+      working-directory: ./resumax_backend
+      run: |
+        coveralls --service=github
+      env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Run Django Compilation CI/CD Tests
+      run: |
+        python ./resumax_backend/manage.py test
+    - name: Black Code Formatter Command Run
+      run: |
+        python -m black ./

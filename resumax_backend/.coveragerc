@@ -1,0 +1,4 @@
+[run]
+omit = 
+    */views.py
+    */urls.py
