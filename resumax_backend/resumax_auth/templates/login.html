@@ -1,41 +1,42 @@
-
 {% extends "base.html" %}
+{% load bootstrap_icons %}
 {% block title %}Login{% endblock %}
   
 {% block content %}
 <div class="center">
-  <h1>Login</h1>
-
-  {% if messages %}
-      {% for message in messages %}
-          {% if message.tags == 'error' %}
-              <center><h4 style="color: firebrick;">{{message}}</h4></center>
-          {% else %}
-              <center><h4 style="color: dodgerblue;">{{message}}</h4></center>
-          {% endif %}
-      {% endfor %}
-  {% endif%}
-    
   <form method="POST">
-
-    {% csrf_token %}
+      <h1>Login</h1>
+      <div class="server-messages">
+        {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                <p class="error">{{message}}</p>
+            {% else %}
+                <p class="success">{{message}}</p>
+            {% endif %}
+        {% endfor %}
+        {% endif%}
+      </div>
+      {% csrf_token %}
 
     <div class="input-field">
-      <input type="text" required name="username">
-      <span></span>
-      <label>Username</label>
+      <input type="text" name="username" required placeholder="username or email">
     </div>
 
     <div class="input-field">
-      <input type="password" required name="password">
-      <span></span>
-      <label>Password</label>
+      <input type="password" name="password" required placeholder="password">
     </div>
-
-    <input type="submit" value="Login">
-    <div class="signup_link">
-      Not a member? <a href="{% url 'register' %}">Signup</a>
-      <p>Forgot your Password? <a href="{% url 'forgot-password' %}">Reset Password</a></p> 
+    <div class="submit-btn-container">
+      <input type="submit" value="LOGIN">
+    </div>
+    <p class="thirdParty-authorization-option-title">Or Log in with</p>
+    <div class="thirdParty-authorization-option-container">
+      <a href="#">{% bs_icon 'facebook' %}</a>
+      <a href="#">{% bs_icon 'google' %}</a>
+    </div>
+    <div class="authentication-page-links-container">
+      <p>Forgot your Password? <a class="important" href="{% url 'forgot-password' %}">Reset Password</a></p> 
+      <p>Not a member? <a class="important" href="{% url 'register' %}">Signup</a></p>
     </div>
   </form>
 </div>

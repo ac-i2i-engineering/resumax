@@ -7,7 +7,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 from pathlib import Path
-import resumax_backend.credentials as credentials
+from .credentials import EMAIL, GMAIL_APP_PASSWORD
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_bootstrap_icons',
     'resumax_algo',
     'resumax_auth',
     #'vectordb',
@@ -99,5 +100,5 @@ LOGIN_URL = 'login'
 EMAIL_HOST="smtp.gmail.com"
 EMAIL_PORT=465
 EMAIL_USE_SSL=True
-EMAIL_HOST_USER= credentials.EMAIL
-EMAIL_HOST_PASSWORD= credentials.GMAIL_APP_PASSWORD
+EMAIL_HOST_USER= EMAIL
+EMAIL_HOST_PASSWORD= GMAIL_APP_PASSWORD
