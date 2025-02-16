@@ -7,3 +7,4 @@ pytest-cov
 coverage
 black
 django_bootstrap_icons
+coveralls
