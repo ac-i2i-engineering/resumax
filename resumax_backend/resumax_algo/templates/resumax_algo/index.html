@@ -85,6 +85,20 @@
         border-top: 1px solid #ddd;
       }
 
+      .logout-btn {
+          background-color: #007bff;
+          color: white;
+          padding: 0.5rem 1rem;
+          border-radius: 0.25rem;
+          text-decoration: none;
+          font-size: 0.875rem;
+          transition: background-color 0.3s ease;
+      }
+
+      .logout-btn:hover {
+          background-color: var(--app-blue-2);
+      }
+
       #chat-input {
         flex: 1;
         padding: 10px;
@@ -107,6 +121,8 @@
         background-color: #6c757d;
         margin-right: 10px;
       }
+
+      
     </style>
   </head>
   <body>
@@ -116,7 +132,7 @@
         <!-- username -->
          <p>Welcome, {{ user.username }}</p>
         <!-- logout link -->
-        <a href="{% url 'logout' %}">Logout</a>
+        <a href="{% url 'logout' %}" class = "logout-btn">Logout</a>
       </div>
       <div class="chat-box" id="chat-box">
         <!-- Dummy messages -->

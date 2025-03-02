@@ -3,7 +3,12 @@
 {% block title %}Login{% endblock %}
   
 {% block content %}
+<div class="page-container">
+  <div class="main-title">
+    <h1>ResuMax</h1>
+  </div>
 <div class="center">
+  
   <form method="POST">
       <h1>Login</h1>
       <div class="server-messages">
@@ -33,5 +38,6 @@
       <p>Not a member? <a class="important" href="{% url 'register' %}">Signup</a></p>
     </div>
   </form>
+  </div>
 </div>
 {% endblock %}

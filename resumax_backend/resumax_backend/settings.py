@@ -88,6 +88,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 STATIC_URL = '/static/'
+
+import os
+
+# Add STATICFILES_DIRS setting
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "resumax_auth/static"),
+]
+
+# Add this setting for collectstatic
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
