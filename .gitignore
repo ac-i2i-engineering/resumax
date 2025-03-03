@@ -163,3 +163,5 @@ cython_debug/
 #.idea/
 /staticfiles/
 /resumax_backend/staticfiles
+
+*env*
