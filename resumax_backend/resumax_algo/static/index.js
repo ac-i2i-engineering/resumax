@@ -1,4 +1,5 @@
 const textarea = document.getElementById("chat-input-text")
+const startNewChatBtn = document.getElementById("start-new-chat-btn");
 document.addEventListener("DOMContentLoaded", (event) => {
   //localStorage.clear();
   loadMessages();
@@ -39,7 +40,12 @@ textarea.addEventListener("input", function () {
   this.style.height = "auto";
   this.style.height = this.scrollHeight + "px";
 });
-
+startNewChatBtn.addEventListener("click", function () {
+  // Clear the chat box and local storage
+  document.getElementById("chat-box").innerHTML = "";
+  localStorage.clear();
+}
+);
 function sendMessage() {
   const chatBox = document.getElementById("chat-box");
   const chatInput = document.getElementById("chat-input-text");
