@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini-like UI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background-color: #e0f7fa;
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            background-color: #f0f0f0;
+            align-self: flex-start;
+        }
+
+        .input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+        }
+
+        #user-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #send-button {
+            padding: 10px 20px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #send-button:hover{
+            background-color: #1a73e8;
+        }
+        .loading-indicator {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            font-style: italic;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="chat-container" id="chat-messages">
+        </div>
+
+    <div class="loading-indicator" id="loading">Loading...</div>
+
+    <div class="input-container">
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <button id="send-button">Send</button>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const loadingIndicator = document.getElementById('loading');
+
+        sendButton.addEventListener('click', sendMessage);
+
+        userInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const messageText = userInput.value.trim();
+            if (messageText) {
+                appendMessage(messageText, 'user');
+                userInput.value = '';
+
+                // Simulate bot response (replace with actual API call)
+                loadingIndicator.style.display = 'block';
+                setTimeout(() => {
+                    const botResponse = generateBotResponse(messageText);
+                    appendMessage(botResponse, 'bot');
+                    loadingIndicator.style.display = 'none';
+                }, 1500); // Simulate network delay
+            }
+        }
+
+        function appendMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', `${sender}-message`);
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+        }
+
+        function generateBotResponse(userMessage) {
+            // Replace with your actual bot logic or API call
+            const responses = [
+                "Hello! How can I assist you?",
+                "That's an interesting question.",
+                "I'm still learning and improving.",
+                "Could you please elaborate?",
+                "Okay, I understand.",
+                "I do not have enough information to answer that question."
+            ];
+            const randomIndex = Math.floor(Math.random() * responses.length);
+            return responses[randomIndex];
+        }
+    </script>
+
+</body>
+</html>
