@@ -8,10 +8,10 @@
     <title>ResuMax</title>
   </head>
   <body>
-    <div class="side-panel active" id="side-panel">
+    <nav class="side-panel" id="side-panel">
       <div class="side-panel-header">
         <h1 class="nav-app-name active">ResuMax</h1>
-        <button id="close-side-panel-btn" class="side-panel-toggler-btn active">☰</button>
+        <button id="close-side-panel-btn" class="side-panel-toggler-btn">☰</button>
       </div>
       <div class="side-panel-content">
         <button id="new-chat-btn">
@@ -32,33 +32,14 @@
           <div class="history-range">
             <p class="history-range-title">Today</p>
             <div class="chat-history-container">
-                <p class="chat-title">lorem ipsum sit do la mere ipsum sit do la mere</p>
-                <p class="chat-title">lorem ipsum sit do la mere</p>
-                <p class="chat-title">lorem ipsum sit do la mere</p>
-            </div>
-          </div>
-          <div class="history-range">
-            <p class="history-range-title">Today</p>
-            <div class="chat-history-container">
-                <p class="chat-title">lorem ipsum sit do la mere ipsum sit do la mere</p>
-                <p class="chat-title">lorem ipsum sit do la mere</p>
-                <p class="chat-title">lorem ipsum sit do la mere</p>
-            </div>
-          </div>
-          <div class="history-range">
-            <p class="history-range-title">Today</p>
-            <div class="chat-history-container">
-                <p class="chat-title">lorem ipsum sit do la mere ipsum sit do la mere</p>
-                <p class="chat-title">lorem ipsum sit do la mere</p>
-                <p class="chat-title">lorem ipsum sit do la mere</p>
-            </div>
-          </div>
-          <div class="history-range">
-            <p class="history-range-title">Today</p>
-            <div class="chat-history-container">
-                <p class="chat-title">lorem ipsum sit do la mere ipsum sit do la mere</p>
-                <p class="chat-title">lorem ipsum sit do la mere</p>
-                <p class="chat-title">lorem ipsum sit do la mere</p>
+                  <p class="chat-title">lorem ipsum sit do la mere ipsum sit do la mere<span>
+                    <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round">
+                      </g><g id="SVGRepo_iconCarrier"> <circle cx="17.5" cy="12" r="1.5"></circle> <circle cx="12" cy="12" r="1.5"></circle> <circle cx="6.5" cy="12" r="1.5"></circle> </g>
+                    </svg>
+                  </span>
+                  </p>
             </div>
           </div>
         </div>
@@ -66,16 +47,16 @@
       <div class="side-panel-footer">
         {% comment %} TODO// design footer(logout,settings,...) {% endcomment %}
         <p>
-          <a href="{% url 'logout' %}"><span>Logout</span></a>
+          <a class="logout-btn" href="{% url 'logout' %}"><span>Logout</span></a>
         </p>
         <p>© 2021 ResuMax</p>
       </div>
-    </div>
+    </nav>
     <div class="chat-container" id="chat-container">
         <div class="navbar">
           <div class="navbar-content">
-            <button id="open-side-panel-btn" class="side-panel-toggler-btn">☰</button>
-            <h1 class="nav-app-name">ResuMax</h1>
+            <button id="open-side-panel-btn" class="side-panel-toggler-btn active">☰</button>
+            <h1 class="nav-app-name active">ResuMax</h1>
             <p>{{ user.username }}</p>
           </div>
         </div>
@@ -159,7 +140,7 @@
           </button>
          </form>
     </div>
-    <div id="side-panel-backdrop" class="active"></div>
+    <div id="side-panel-backdrop"></div>
     <script src="{% static 'index.js' %}"></script>
   </body>
 </html>

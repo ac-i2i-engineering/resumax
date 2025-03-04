@@ -32,7 +32,7 @@ body {
   color: #fff;
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: .25rem;
   justify-content: space-between;
   text-align: center;
 
@@ -53,7 +53,7 @@ body {
 }
 .side-panel {
   width: 250px;
-  height: 100%;
+  height: 100vh;
   background-color: #333;
   color: #fff;
   position: fixed;
@@ -63,8 +63,6 @@ body {
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  justify-content: start;
-  /* display: block; */
 }
 #side-panel-backdrop.active{
   display: block !important;
@@ -81,15 +79,20 @@ body {
 }
 .side-panel-content{
   display: flex;
-  background-color: red;
   flex-direction: column;
   padding: 2rem 1rem 1rem 1rem;
   flex-grow: 1;
+  overflow-y: hidden;
 }
 .side-panel-footer{
   margin-top: auto;
   border-top: 1px solid #444;
   text-align: center;
+  padding: .5rem 0;
+}
+.side-panel-footer p{
+  margin-top: 1rem;
+  font-size: .8rem;
 }
 #new-chat-btn{
   display: flex;
@@ -97,37 +100,54 @@ body {
   align-items: center;
   padding: .5rem;
   color: white;
-  font-size: 1rem;
+  font-size: .75rem;
   gap: 0.5rem;
   background-color: inherit;
   border: 1px solid #444;
   border-radius: 0.25rem;
 }
-#new-chat-btn:hover{
-  opacity: 0.8;
-  cursor: pointer;
-}
 .chat-history-range-container{
   margin: 1rem 0 0 0;
-  height: 50vh;
-  display: block;
+  height: 100%;
   overflow-y: auto;
-  background-color: green;
+}
+.chat-history-range-container::-webkit-scrollbar {
+  display: none;
 }
 .history-range-title{
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
+  margin: .25rem 0;
 }
 .chat-title{
-  font-size: 14px;
+  font-size: 11px;
+  font-weight:1;
   text-wrap: nowrap;
   overflow: hidden;
+  padding: .5rem;
+  margin: .25rem 0;
   text-overflow: ellipsis;
   line-height: 80%;
+  position: relative;
+  border-radius: 0.25rem;
+
 }
-.chat-title:hover{
-  opacity: 0.8;
+.chat-title:hover,#new-chat-btn:hover{
+  background-color: #3b4045;
   cursor: pointer;
+}
+.chat-title span{
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding: 0 .25rem;
+  margin: 0;
+  display: flex;
+  background-color: #5a6269;
+  text-align: center;
+  box-shadow: -6px 0px 5px #5a6269;
+  display: none;
 }
 .chat-container {
   width: 100%;
@@ -195,18 +215,17 @@ body {
 
 .chat-form{
 border-radius: 1rem;
-padding: 0.75rem;
-margin: 1rem 2rem;
+padding: 0.6rem;
+margin: 1rem;
 box-shadow: var(--app-shadow-1);
 background-color: white;
 display: flex;
+gap: .5rem;
 justify-content: center;
 align-items: center;
-gap: 0.25rem;
 }
 
 .logout-btn {
-  background-color: #007bff;
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
@@ -216,7 +235,7 @@ gap: 0.25rem;
 }
 
 .logout-btn:hover {
-  background-color: var(--app-blue-2);
+  background-color: #007bff;
 }
 #chat-input-text {
   width: 100%;
@@ -224,8 +243,11 @@ gap: 0.25rem;
   outline: none;
   resize: none; /* Disable manual resizing */
   overflow: hidden; /* Hide vertical scrollbar */
+  background-color: inherit;
 }
-
+#chat-input-text.mt-2{
+  margin-top: .5rem;
+}
 #send-btn,
 #file-upload-btn {
   border: none;
@@ -241,6 +263,9 @@ gap: 0.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  background-color: #EFEFEF;
+  padding: .5rem .75rem;
+  border-radius: .25rem;
 }
 
 .chat-input-files{
@@ -250,10 +275,10 @@ gap: 0.25rem;
 }
 #file-icon-container{
   position: relative;
-  background-color: #EFEFEF; 
+  background-color: #b0b0b0; 
   justify-self: start;
-  border-radius: 4px;
-  padding: 4px;
+  border-radius: .5rem;
+  padding: .25rem;
   display: none;
 }
 .remove-file-btn{
@@ -282,8 +307,32 @@ gap: 0.25rem;
   .chat-container {
     width: calc(100% - 250px)
   }
-  .chat-container.expanded {
+  .chat-container.minimized {
     width: 100%;
+  }
+  .side-panel {
+    left: 0;
+  }
+  .side-panel.active{
+    left: -250px !important;
+  }
+  .side-panel .nav-app-name{
+    visibility: visible;
+  }
+  .side-panel-toggler-btn{
+    display: block;
+  }
+  .side-panel-toggler-btn.active{
+    display: none !important;
+  }
+  #close-side-panel-btn{
+    display: block;
+  }
+  .navbar-content .nav-app-name{
+    visibility: visible;
+  }
+  .navbar-content .nav-app-name.active{
+    visibility: hidden;
   }
 }
 

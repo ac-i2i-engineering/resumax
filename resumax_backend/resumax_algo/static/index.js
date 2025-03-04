@@ -1,3 +1,4 @@
+const textarea = document.getElementById("chat-input-text")
 document.addEventListener("DOMContentLoaded", (event) => {
   //localStorage.clear();
   loadMessages();
@@ -12,6 +13,8 @@ document.getElementById("file").addEventListener("change", (event) => {
   if (file) {
     document.getElementById("file-icon-container").style.display = "flex";
     document.getElementById("file-name").textContent = file.name;
+    //add space between the textarea and the file icon
+    textarea.classList.toggle("mt-2");
   } else {
     document.getElementById("file-icon-container").style.display = "none";
     document.getElementById("file-name").textContent = "";
@@ -22,7 +25,6 @@ document.getElementById("send-btn").addEventListener("click", function (event) {
   sendMessage();
   uploadFile();
 });
-const textarea = document.getElementById("chat-input-text")
 textarea.addEventListener("keypress", function (event) {
     if (event.key === "Enter") {
       document.getElementById("send-btn").click();
@@ -32,11 +34,7 @@ textarea.addEventListener("keypress", function (event) {
 //   responsiveness for the UI
 document.getElementById("open-side-panel-btn").addEventListener("click", sideBarDisplay);
 document.getElementById("close-side-panel-btn").addEventListener("click", sideBarDisplay);
-document
-  .getElementById("side-panel-backdrop")
-  .addEventListener("click", sideBarDisplay);
-
-;
+document.getElementById("side-panel-backdrop").addEventListener("click", sideBarDisplay);
 textarea.addEventListener("input", function () {
   this.style.height = "auto";
   this.style.height = this.scrollHeight + "px";
@@ -98,7 +96,7 @@ function loadMessages() {
 function sideBarDisplay() {
   document.getElementById("side-panel").classList.toggle("active");
   document.getElementById("side-panel-backdrop").classList.toggle("active");
-  document.getElementById("chat-container").classList.toggle("expanded");
+  document.getElementById("chat-container").classList.toggle("minimized");
   document.getElementById("close-side-panel-btn").classList.toggle("active");
   document.getElementById("open-side-panel-btn").classList.toggle("active");
   document.querySelectorAll(".nav-app-name").forEach((element) => {
