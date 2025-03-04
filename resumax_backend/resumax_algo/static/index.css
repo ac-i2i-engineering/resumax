@@ -15,7 +15,7 @@ body {
   box-sizing: border-box;
 }
 
-.navbar {
+.top-navbar {
   position: fixed;
   top: 0;
   width: inherit;
@@ -27,7 +27,7 @@ body {
 .nav-app-name.active{
   visibility:visible;
 }
-.navbar-content{
+.top-navbar-body{
   background-color: var(--app-blue-1);
   color: #fff;
   display: flex;
@@ -75,7 +75,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: .25rem .8rem;
 }
 .side-panel-content{
   display: flex;
@@ -328,10 +328,10 @@ align-items: center;
   #close-side-panel-btn{
     display: block;
   }
-  .navbar-content .nav-app-name{
+  .top-navbar-body .nav-app-name{
     visibility: visible;
   }
-  .navbar-content .nav-app-name.active{
+  .top-navbar-body .nav-app-name.active{
     visibility: hidden;
   }
 }

@@ -10,7 +10,7 @@
   <body>
     <nav class="side-panel" id="side-panel">
       <div class="side-panel-header">
-        <h1 class="nav-app-name active">ResuMax</h1>
+        <h1 class="nav-app-name">ResuMax</h1>
         <button id="close-side-panel-btn" class="side-panel-toggler-btn">☰</button>
       </div>
       <div class="side-panel-content">
@@ -53,13 +53,13 @@
       </div>
     </nav>
     <div class="chat-container" id="chat-container">
-        <div class="navbar">
-          <div class="navbar-content">
+        <nav class="top-navbar">
+          <div class="top-navbar-body">
             <button id="open-side-panel-btn" class="side-panel-toggler-btn active">☰</button>
             <h1 class="nav-app-name active">ResuMax</h1>
             <p>{{ user.username }}</p>
           </div>
-        </div>
+        </nav>
         <div class="chat-box" id="chat-box">
           <!-- Dummy messages -->
           <div class="message other-message">
