@@ -94,6 +94,7 @@ import os
 # Add STATICFILES_DIRS setting
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "resumax_auth/static"),
+    os.path.join(BASE_DIR, "resumax_algo/static"),
 ]
 
 # Add this setting for collectstatic

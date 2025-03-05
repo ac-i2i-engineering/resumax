@@ -1,0 +1,343 @@
+:root{
+  --side-nav-width: 250px;
+  --app-blue-1:rgb(0, 50, 97);
+  --app-shadow-1: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.top-navbar {
+  position: fixed;
+  top: 0;
+  width: inherit;
+  z-index: 999;
+}
+.nav-app-name{
+  visibility:hidden;
+}
+.nav-app-name.active{
+  visibility:visible;
+}
+.top-navbar-body{
+  background-color: var(--app-blue-1);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: .25rem;
+  justify-content: space-between;
+  text-align: center;
+
+}
+.side-panel-toggler-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  display: none;
+}
+.side-panel-toggler-btn.active{
+  display: block !important;
+}
+#close-side-panel-btn{
+  display: none;
+}
+.side-panel {
+  width: 250px;
+  height: 100vh;
+  background-color: #333;
+  color: #fff;
+  position: fixed;
+  top: 0;
+  left: -250px;
+  transition: left .7s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+#side-panel-backdrop.active{
+  display: block !important;
+}
+.side-panel.active {
+  left: 0;
+}
+.side-panel-header{
+  background-color: var(--app-blue-1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .25rem .8rem;
+}
+.side-panel-body{
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1rem 1rem 1rem;
+  flex-grow: 1;
+  overflow-y: hidden;
+}
+.side-panel-footer{
+  margin-top: auto;
+  border-top: 1px solid #444;
+  text-align: center;
+  padding: .5rem 0;
+}
+.side-panel-footer p{
+  margin-top: 1rem;
+  font-size: .8rem;
+}
+#start-new-chat-btn{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .5rem;
+  color: white;
+  font-size: 14px;
+  gap: 0.5rem;
+  background-color: inherit;
+  border: 1px solid #444;
+  border-radius: 0.25rem;
+}
+#chat-history-range-container{
+  margin: 1rem 0 0 0;
+  height: 100%;
+  overflow-y: auto;
+}
+#chat-history-range-container::-webkit-scrollbar {
+  display: none;
+}
+.history-range-title{
+  font-size: 14px;
+  font-weight: bold;
+  margin: .25rem 0;
+}
+.chat-title{
+  font-size: 14px;
+  font-weight:1;
+  text-wrap: nowrap;
+  overflow: hidden;
+  padding: .5rem;
+  margin: .25rem 0;
+  text-overflow: ellipsis;
+  line-height: 80%;
+  position: relative;
+  border-radius: 0.25rem;
+
+}
+.chat-title:hover,#start-new-chat-btn:hover{
+  background-color: #3b4045;
+  cursor: pointer;
+}
+.chat-title span{
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding: 0 .25rem;
+  margin: 0;
+  display: flex;
+  background-color: #43494e;
+  text-align: center;
+  justify-content: center;
+  box-shadow: -7px -1px 7px 3px #43494e;
+  display: none;
+  opacity: 0.5;
+}
+.chat-title span:hover{
+  opacity: 1;
+}
+.chat-container {
+  width: 100%;
+  margin-top: 4.75rem;
+  height: calc(100vh - 4.75rem);
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  transition: width .7s ease;
+}
+
+.chat-header {
+  background-color: rgb(0, 50, 97);
+  color: #fff;
+  padding: 10px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.chat-box {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  padding: 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  max-width: 80%;
+  word-wrap: break-word;
+  display: inline-block;
+}
+
+.user-message {
+  background-color: #007bff;
+  color: #fff;
+  align-self: flex-end;
+  text-align: right;
+}
+
+.bot-message {
+  background-color: #6c757d;
+  color: #fff;
+  align-self: flex-start;
+  text-align: left;
+}
+
+.file-message {
+  background-color: #74be71;
+  color: #fff;
+  align-self: flex-end;
+  text-align: right;
+  padding: 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  max-width: 80%;
+  word-wrap: break-word;
+}
+
+.chat-form{
+border-radius: 1rem;
+padding: 0.6rem;
+margin: 1rem;
+box-shadow: var(--app-shadow-1);
+background-color: white;
+display: flex;
+gap: .5rem;
+justify-content: center;
+align-items: center;
+}
+
+.logout-btn {
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: background-color .7s ease;
+}
+
+.logout-btn:hover {
+  background-color: #007bff;
+}
+#chat-input-text {
+  width: 100%;
+  border: 0px;
+  outline: none;
+  resize: none; /* Disable manual resizing */
+  overflow: hidden; /* Hide vertical scrollbar */
+  background-color: inherit;
+}
+#chat-input-text.mt-2{
+  margin-top: .5rem;
+}
+#send-btn,
+#file-upload-btn {
+  border: none;
+  color: var(--app-blue-1);
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: end;
+  padding: .5rem .5rem .25rem .5rem;
+  margin: 0;
+}
+.user-input-container{
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #EFEFEF;
+  padding: .5rem .75rem;
+  border-radius: .25rem;
+}
+
+.chat-input-files{
+  display: flex;
+  justify-content: start;
+  width: 100%;
+}
+#file-icon-container{
+  position: relative;
+  background-color: #b0b0b0; 
+  justify-self: start;
+  border-radius: .5rem;
+  padding: .25rem;
+  display: none;
+}
+.remove-file-btn{
+  position: absolute;
+  background-color: var(--app-blue-1);
+  color: white;
+  border-radius: 100%;
+  top: -5px;
+  right: -5px;
+  cursor: pointer;
+  padding: 1px 4px;
+  margin: 0;
+}
+@media (max-width: 768px){
+#side-panel-backdrop{
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(6, 76, 163, 0.5);
+  z-index: 999;
+  display: none;
+}
+}
+@media (min-width: 768px) {
+  .chat-container {
+    width: calc(100% - 250px)
+  }
+  .chat-container.minimized {
+    width: 100%;
+  }
+  .side-panel {
+    left: 0;
+  }
+  .side-panel.active{
+    left: -250px !important;
+  }
+  .side-panel .nav-app-name{
+    visibility: visible;
+  }
+  .side-panel-toggler-btn{
+    display: block;
+  }
+  .side-panel-toggler-btn.active{
+    display: none !important;
+  }
+  #close-side-panel-btn{
+    display: block;
+  }
+  .top-navbar-body .nav-app-name{
+    visibility: visible;
+  }
+  .top-navbar-body .nav-app-name.active{
+    visibility: hidden;
+  }
+}
