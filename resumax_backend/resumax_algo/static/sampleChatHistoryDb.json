@@ -4,7 +4,7 @@
     "title": "Resume Optimization",
     "created_at": "2025-03-01T10:00:00Z",
     "updated_at": "2025-03-01T12:30:00Z",
-    "conversations": [
+    "messages": [
       {
         "prompt_id": "prompt_1",
         "datetime": "2025-03-01T10:00:00Z",
@@ -39,7 +39,7 @@
     "title": "Cover Letter Assistance",
     "created_at": "2025-03-02T14:00:00Z",
     "updated_at": "2025-03-02T15:00:00Z",
-    "conversations": [
+    "messages": [
       {
         "prompt_id": "prompt_4",
         "datetime": "2025-03-02T14:00:00Z",
@@ -65,7 +65,7 @@
     "title": "Interview Preparation",
     "created_at": "2025-03-02T16:00:00Z",
     "updated_at": "2025-03-02T17:30:00Z",
-    "conversations": [
+    "messages": [
       {
         "prompt_id": "prompt_6",
         "datetime": "2025-03-02T16:00:00Z",
@@ -91,7 +91,7 @@
     "title": "Skills Gap Analysis",
     "created_at": "2025-03-03T09:00:00Z",
     "updated_at": "2025-03-03T10:00:00Z",
-    "conversations": [
+    "messages": [
       {
         "prompt_id": "prompt_8",
         "datetime": "2025-03-03T09:00:00Z",
@@ -117,7 +117,7 @@
     "title": "Salary Negotiation",
     "created_at": "2025-03-03T11:00:00Z",
     "updated_at": "2025-03-03T12:00:00Z",
-    "conversations": [
+    "messages": [
       {
         "prompt_id": "prompt_10",
         "datetime": "2025-03-03T11:00:00Z",
