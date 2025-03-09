@@ -7,6 +7,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 from pathlib import Path
+import environ
+import secret
+env = environ.Env()
+environ.Env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
@@ -25,8 +29,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_bootstrap_icons',
+    'rest_framework',
     'resumax_algo',
     'resumax_auth',
+    'resumax_api',
     #'vectordb',
 ]
 MIDDLEWARE = [
@@ -106,3 +112,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # URL to redirect authenticated users to when they attempt to access a view that requires login
 LOGIN_URL = 'login'
+# URL for media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+GEMINI_API_KEY = secret.GEMINI_API_KEY
