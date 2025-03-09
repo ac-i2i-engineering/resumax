@@ -39,7 +39,7 @@ The ResuMax backend is a Django-based application that provides the API and core
     *   **`secret.py`:**  This file is crucial for storing sensitive information such as the `GEMINI_API_KEY` and the Django `SECRET_KEY`.  **Do not commit this file to version control.**  Create a [secret.py](http://_vscodecontentref_/2) file in the [resumax_backend](http://_vscodecontentref_/3) directory with the following structure:
 
         ```python
-        # filepath: /Users/endayishimiye28/Desktop/Projects/resumax/resumax_backend/resumax_backend/secret.py
+        # filepath:resumax/resumax_backend/resumax_backend/secret.py
         SECRET_KEY = 'your_django_secret_key'
         GEMINI_API_KEY = 'your_gemini_api_key'
         ```
@@ -47,7 +47,7 @@ The ResuMax backend is a Django-based application that provides the API and core
     *   **`resumax_backend/settings.py`:**  Update the [settings.py](http://_vscodecontentref_/4) file to import the [secret.py](http://_vscodecontentref_/5) settings:
 
         ```python
-        # filepath: /Users/endayishimiye28/Desktop/Projects/resumax/resumax_backend/resumax_backend/settings.py
+        # filepath:resumax/resumax_backend/resumax_backend/settings.py
         from .secret import SECRET_KEY, GEMINI_API_KEY
 
         # ... other settings ...
