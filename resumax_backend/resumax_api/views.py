@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from resumax_algo.aiModel import generateContent
 from .serializers import AttachedFileSerializer, ConversationSerializer
 from django.core.files.storage import FileSystemStorage
-from django.conf import settings
 # Create your views here.
 @login_required
 @api_view(['GET', 'POST'])
