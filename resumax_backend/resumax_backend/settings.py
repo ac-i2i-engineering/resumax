@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'resumax_algo',
     'resumax_auth',
     'resumax_api',
+    'rest_framework',
     #'vectordb',
 ]
 MIDDLEWARE = [
