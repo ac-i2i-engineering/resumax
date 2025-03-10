@@ -2,8 +2,6 @@ from google import genai
 from google.genai import types
 from django.conf import settings
 import pathlib
-import httpx
-
 
 def generateContent(promptText, fileUrl=None):
     '''

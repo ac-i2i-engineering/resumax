@@ -8,7 +8,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 from pathlib import Path
 import environ
-import secret
 env = environ.Env()
 environ.Env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -115,4 +114,4 @@ LOGIN_URL = 'login'
 # URL for media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-GEMINI_API_KEY = secret.GEMINI_API_KEY
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
