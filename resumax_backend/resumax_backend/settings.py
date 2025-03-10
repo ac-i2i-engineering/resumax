@@ -25,7 +25,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_bootstrap_icons',
-    'rest_framework',
     'resumax_algo',
     'resumax_auth',
     'resumax_api',
