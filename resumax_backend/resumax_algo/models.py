@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Document(models.Model):
     '''
@@ -44,3 +45,32 @@ class Document(models.Model):
     def __str__(self):
         return self.title or f"Document {self.id}"
     
+class ConversationsThread(models.Model):
+    '''
+    ChatThread model to store chat messages in the database for retrieval.
+    '''
+    title = models.CharField(max_length=200, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title or f"ChatThread {self.id}"
+
+class Conversation(models.Model):
+    '''
+    Chat model to store chat messages in the database for retrieval.
+    '''
+    thread = models.ForeignKey(ConversationsThread, on_delete=models.CASCADE)
+    prompt = models.TextField(max_length=1000,help_text="The user's prompt",default="")
+    response = models.TextField(max_length=1500,help_text="The bot's response",default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"Conversation {self.id}"
+
+class AttachedFile(models.Model):
+    Conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    fileName = models.TextField(max_length=500,help_text="The file path",default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return self.fileName or f"file {self.id}"
