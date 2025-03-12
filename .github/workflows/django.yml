@@ -47,3 +47,6 @@ jobs:
     - name: Black Code Formatter Command Run
       run: |
         python -m black ./
+        # .github/workflows/django.yml
+    - name: Install dependencies
+      run: pip install -r requirements.txt
