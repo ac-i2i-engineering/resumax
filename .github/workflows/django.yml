@@ -19,7 +19,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.12.9"]
 
     steps:
     - uses: actions/checkout@v4
@@ -27,6 +27,10 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Create a virtual environment
+      run: python -m venv .venv
+    - name: Activate virtual environment
+      run: source .venv/bin/activate
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
@@ -47,3 +51,4 @@ jobs:
     - name: Black Code Formatter Command Run
       run: |
         python -m black ./
+        # .github/workflows/django.yml

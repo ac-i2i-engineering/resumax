@@ -56,26 +56,23 @@
           </div>
         </nav>
         <div class="chat-box" id="chat-box">
-          <!-- Dummy messages -->
-          <div class="message bot-message">
-            Hello! How can I help you today?
-          </div>
+          <!-- 
           <div class="message user-message">
-            Hi! I need some help with my resume.
+            some
           </div>
           <div class="message bot-message">
-            Sure, please upload a copy of your resume and I'd be happy to take a
-            look at it!
           </div>
+           -->
         </div>
         <!-- user file/text input form-->
-        <form class="chat-form" method="POST" enctype="multipart/form-data">
+        <form class="chat-form" id="prompt-input-form" method="POST" enctype="multipart/form-data">
          {% csrf_token %}
          <input
                type="file"
-               name="file"
+               name="prompt-file"
                id="file"
                required
+               accept=".pdf"
                style="display: none"
              />
          <button type="button" id="file-upload-btn">
@@ -118,7 +115,7 @@
              </span>
              </div>
            </div>
-           <textarea type="text" id="chat-input-text" placeholder="Type a message..." rows="1"></textarea>
+           <textarea type="text" name="prompt-text" id="chat-input-text" placeholder="Type a message..." rows="1"></textarea>
          </div>
          <button type="submit" id="send-btn">
            <svg
