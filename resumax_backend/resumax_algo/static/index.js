@@ -40,8 +40,8 @@ function resizeTextarea() {
 // add the received bot response to the chat box
 function sendPrompt(promptData) {
   // add the user message to the chat box
-  addUserMessage(promptData.get("prompt-text"));
-  const files = promptData.get("prompt-file");
+  addUserMessage(promptData.get("prompt-text"), promptData.getAll("prompt-file").map(file => file.name));
+  debugger;
   // send the prompt to the server  
   const requestOptions = {
     method: 'POST',
@@ -60,7 +60,7 @@ function sendPrompt(promptData) {
       loadThreads();
     }
     // add the bot response to the chat box
-    addBotMessage(response.text)
+    addBotMessage(response.response, response.attachedFiles);
   })
   .catch((error) => console.error("Error fetching data:", error));
 }
@@ -83,7 +83,7 @@ function handleOnSubmitPrompt(event) {
   // get the prompt data from the form
   const promptData = new FormData(promptInputForm);
   // reset the form to its initial state
-  // promptInputForm.reset()
+  promptInputForm.reset()
   textarea.style.height = "auto";
   handleOnChangeFile();
   // send the prompt to the server
@@ -121,6 +121,18 @@ function addInputFieldFilePreview(index) {
   inputFilesPreviewContainer.appendChild(fileIconContainer);
 }
 
+function addConversationFilePreview(name) {
+  const fileIconContainer = document.createElement("div");
+  const fileIcon = document.createElement("i");
+  const fileName = document.createElement("span");
+  fileIconContainer.classList.add("file-icon-container");
+  fileIcon.classList.add("bi", "bi-file-earmark-pdf", "file-type-preview-icon");
+  fileName.classList.add("file-name");
+  fileName.textContent = name;
+  fileIconContainer.appendChild(fileIcon);
+  fileIconContainer.appendChild(fileName);
+  return fileIconContainer;
+}
 function deleteInputFile(index) {
   const files = Array.from(attachedFiles.files);
   const dataTransfer = new DataTransfer();
@@ -212,7 +224,7 @@ function loadConversations(threadId=currentThreadId) {
     .then((response) => {
       chatBox.innerHTML = "";
       response.conversations.forEach((message) => {
-        addUserMessage(message.prompt);
+        addUserMessage(message.prompt, message.attachedFiles);
         addBotMessage(message.response);
       });
     }).catch(error => console.error('Error fetching data:', error));
@@ -235,10 +247,21 @@ function getCookie(name) {
 }
 
 // add a user message in the chat box
-function addUserMessage(message, attachedFile=null) {
+function addUserMessage(message, attachedFiles=null) {
   const messageElement = document.createElement("div");
+  const textBox = document.createElement("div");
   messageElement.classList.add("message", "user-message");
-  messageElement.textContent = message;
+  if(attachedFiles){
+    const filesPreviewContainer = document.createElement("div");
+    filesPreviewContainer.classList.add("files-preview-container");
+    attachedFiles.forEach((file) => {
+      filesPreviewContainer.appendChild(addConversationFilePreview(file));
+    });
+    messageElement.appendChild(filesPreviewContainer);
+  }
+  textBox.classList.add("text-box");
+  textBox.textContent = message;
+  messageElement.appendChild(textBox);
   chatBox.appendChild(messageElement);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -279,6 +302,5 @@ function deleteThread(threadId) {
   .then(() => loadThreads())
   .catch((error) => console.error("Error fetching data:", error));
 }
-// TODO: add functionalities for the remove file button on the chat box
-// TODO: add a functionality to upload multiple files
 // TODO: make a user message with a file attachment =>"file-message"
+// TODO: make the initial thread on load doc to be zero

@@ -69,7 +69,7 @@ class Conversation(models.Model):
         return f"Conversation {self.id}"
 
 class AttachedFile(models.Model):
-    Conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, default=None)
     fileName = models.TextField(max_length=500,help_text="The file path",default="")
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):

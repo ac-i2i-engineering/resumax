@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from rest_framework.parsers import MultiPartParser
-from resumax_algo.models import ConversationsThread, Conversation
+from resumax_algo.models import AttachedFile, ConversationsThread, Conversation
 from rest_framework.decorators import api_view,parser_classes
 from rest_framework.response import Response
 from resumax_algo.aiModel import generateContent
@@ -22,6 +22,7 @@ def conversations(request, thread_id):
                     {
                         "prompt": conversation.prompt,
                         "response": conversation.response,
+                        "attachedFiles": [ attachedFile.fileName for attachedFile in AttachedFile.objects.filter(conversation=conversation.id)]
                     }
                     for conversation in Conversation.objects.filter(thread=currentThread)
                 ]
@@ -55,7 +56,7 @@ def conversations(request, thread_id):
             else:
                 return Response({"error": promptSerializer.errors}, status=400)
             # Return response
-            return Response({"text": response})
+            return Response({"response": response})
         # # if file is provided
         #upload file to media folder
         uploaded_file_urls = [] 
@@ -78,16 +79,19 @@ def conversations(request, thread_id):
         promptSerializer = ConversationSerializer(data = promptData)
         if promptSerializer.is_valid():
             conversation = promptSerializer.save()
-            # save file to the database
-            fileData = {
-                "Conversation": conversation.id, 
-                "fileName": filename
-            }
-            fileSerializer = AttachedFileSerializer(data=fileData)
-            if fileSerializer.is_valid():
-                fileSerializer.save()                
-                return Response({"text": response})
-            return Response({"error": fileSerializer.errors}, status=400)
+            # save files to the database
+            fileNames = [ url.split("/")[-1] for url in uploaded_file_urls]
+            for fileName in fileNames:
+                fileData = {
+                    "conversation": conversation.id, 
+                    "fileName": fileName
+                }
+                fileSerializer = AttachedFileSerializer(data=fileData)
+                if fileSerializer.is_valid():
+                    fileSerializer.save() 
+                else:               
+                    return Response({"error": fileSerializer.errors}, status=400)
+            return Response({"response": response, "attachedFiles": fileNames})
         else:
             return Response({"error": promptSerializer.errors}, status=400)
     

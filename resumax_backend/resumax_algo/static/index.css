@@ -217,7 +217,10 @@ body {
   max-width: 80%;
   word-wrap: break-word;
 }
-
+.text-box{
+  padding: .5rem 0;
+  text-align: start;
+}
 .chat-form{
 border-radius: 1rem;
 padding: 0.6rem;
@@ -286,7 +289,7 @@ align-items: center;
   border-radius: .25rem;
 }
 
-#input-files-preview-container{
+.files-preview-container{
   display: flex;
   justify-content: start;
   gap: .5rem;
