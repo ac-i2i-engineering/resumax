@@ -302,5 +302,7 @@ function deleteThread(threadId) {
   .then(() => loadThreads())
   .catch((error) => console.error("Error fetching data:", error));
 }
-// TODO: make a user message with a file attachment =>"file-message"
 // TODO: make the initial thread on load doc to be zero
+// TODO: limit the length of a file name preview
+// TODO: Enable thread categorization based on when they were created
+// TODO: look for pretty UI/UX
