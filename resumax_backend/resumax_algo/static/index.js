@@ -1,15 +1,16 @@
 DEBUGMODE = false;  
 const chatBox = document.getElementById("chat-box");
 const sidePanel = document.getElementById("side-panel");
-const attachedFile = document.getElementById("file");
+const attachedFiles = document.getElementById("file");
 const textarea = document.getElementById("chat-input-text")
 const sendPromptBtn = document.getElementById("send-btn")
-const fileUploadBtn = document.getElementById("file-upload-btn");
+const uploadFileBtn = document.getElementById("upload-file-btn");
 const createThreadBtn = document.getElementById("create-thread-btn");
 const promptInputForm = document.getElementById("prompt-input-form");
 const openSidePanelBtn = document.getElementById("open-side-panel-btn");
 const closeSidePanelBtn = document.getElementById("close-side-panel-btn");
 const sidePanelBackdrop = document.getElementById("side-panel-backdrop");
+const inputFilesPreviewContainer = document.getElementById("input-files-preview-container");
 const chatHistoryRangeContainer = document.getElementById("chat-history-range-container");
 const csrfToken = getCookie('csrftoken') || document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 // initialize the thread id
@@ -19,8 +20,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
   loadThreads();
 });
 
-fileUploadBtn.addEventListener("click", () => {attachedFile.click()});
-attachedFile.addEventListener("change", handleOnChangeFile);
+uploadFileBtn.addEventListener("click", () => {attachedFiles.click()});
+attachedFiles.addEventListener("change", handleOnChangeFile);
 sendPromptBtn.addEventListener("click", handleOnSubmitPrompt);
 textarea.addEventListener("keypress", handleTextareaFormatting);
 openSidePanelBtn.addEventListener("click", handleSideBarToggleEffect);
@@ -40,6 +41,7 @@ function resizeTextarea() {
 function sendPrompt(promptData) {
   // add the user message to the chat box
   addUserMessage(promptData.get("prompt-text"));
+  const files = promptData.get("prompt-file");
   // send the prompt to the server  
   const requestOptions = {
     method: 'POST',
@@ -81,24 +83,51 @@ function handleOnSubmitPrompt(event) {
   // get the prompt data from the form
   const promptData = new FormData(promptInputForm);
   // reset the form to its initial state
-  promptInputForm.reset()
+  // promptInputForm.reset()
   textarea.style.height = "auto";
   handleOnChangeFile();
   // send the prompt to the server
   sendPrompt(promptData);
 }
-function handleOnChangeFile() {    
-  const file = attachedFile.files[0];
-    if (file) {
-      document.getElementById("file-icon-container").style.display = "flex";
-      document.getElementById("file-name").textContent = file.name;
+function handleOnChangeFile() {  
+  inputFilesPreviewContainer.innerHTML = "";  
+  const files = Array.from(attachedFiles.files)
+    if (files.length > 0) {
+      inputFilesPreviewContainer.style.display = "flex";
+      files.forEach((file, index) => {
+        addInputFieldFilePreview(index);
+      });
       //add space between the textarea and the file icon
       textarea.classList.toggle("mt-2");
-    } else {
-      document.getElementById("file-icon-container").style.display = "none";
-      document.getElementById("file-name").textContent = "";
-      textarea.classList.remove("mt-2");
+      return;
     }
+    inputFilesPreviewContainer.style.display = "none";
+    textarea.classList.remove("mt-2");
+}
+function addInputFieldFilePreview(index) {
+  const fileIconContainer = document.createElement("div");
+  const fileIcon = document.createElement("i");
+  const fileName = document.createElement("span");
+  const removeFileBtn = document.createElement("i");
+  fileIconContainer.classList.add("file-icon-container");
+  fileIcon.classList.add("bi", "bi-file-earmark-pdf", "file-type-preview-icon");
+  fileName.classList.add("file-name");
+  removeFileBtn.classList.add("bi", "bi-x", "remove-file-btn");
+  fileName.textContent = attachedFiles.files[index].name;
+  fileIconContainer.appendChild(fileIcon);
+  fileIconContainer.appendChild(fileName);
+  fileIconContainer.appendChild(removeFileBtn);
+  removeFileBtn.onclick = () => {deleteInputFile(index)};
+  inputFilesPreviewContainer.appendChild(fileIconContainer);
+}
+
+function deleteInputFile(index) {
+  const files = Array.from(attachedFiles.files);
+  const dataTransfer = new DataTransfer();
+  files.splice(index, 1);
+  files.forEach(file => dataTransfer.items.add(file));
+  attachedFiles.files = dataTransfer.files;
+  handleOnChangeFile();
 }
 
 function handleSideBarToggleEffect() {
@@ -251,4 +280,5 @@ function deleteThread(threadId) {
   .catch((error) => console.error("Error fetching data:", error));
 }
 // TODO: add functionalities for the remove file button on the chat box
+// TODO: add a functionality to upload multiple files
 // TODO: make a user message with a file attachment =>"file-message"

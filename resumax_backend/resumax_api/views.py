@@ -10,7 +10,7 @@ from django.core.files.storage import FileSystemStorage
 @login_required
 @api_view(['GET', 'POST'])
 @parser_classes([MultiPartParser])
-def get_conversations(request, thread_id):
+def conversations(request, thread_id):
     user = request.user
     if request.method == 'GET':
         try:
@@ -35,9 +35,9 @@ def get_conversations(request, thread_id):
             thread_id = thread.id
         # save conversation
         promptText = request.data.get("prompt-text")
-        promptFile = request.FILES.get("prompt-file")
+        promptAttachedFiles = request.FILES.getlist("prompt-file")
         # if no file is provided
-        if not promptFile:
+        if not promptAttachedFiles:
             # Generate response
             try:
                 response = generateContent(promptText)
@@ -58,12 +58,15 @@ def get_conversations(request, thread_id):
             return Response({"text": response})
         # # if file is provided
         #upload file to media folder
-        fs = FileSystemStorage()
-        filename = fs.save(promptFile.name, promptFile)
-        uploaded_file_url = fs.url(filename)
+        uploaded_file_urls = [] 
+        for promptAttachedFile in promptAttachedFiles:
+            fs = FileSystemStorage()
+            filename = fs.save(promptAttachedFile.name, promptAttachedFile)
+            uploaded_file_urls.append(fs.url(filename))
         # Generate response
         try:
-            response = generateContent(promptText, uploaded_file_url)
+            # Generate response considering attached files
+            response = generateContent(promptText, uploaded_file_urls)
         except Exception as e:
             return Response({"error": str(e)}, status=500)
         # Save conversation to the database
@@ -118,3 +121,5 @@ def delete_thread(request, thread_id):
         return Response({"error": "Thread not found"}, status=404)
     thread.delete()
     return Response({"message": "Thread deleted successfully"}, status=200)
+
+# TODO: add a functionality to vectorize all the messages in the same thread and send them with the prompt to the server

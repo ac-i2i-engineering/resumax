@@ -254,7 +254,7 @@ align-items: center;
   margin-top: .5rem;
 }
 #send-btn,
-#file-upload-btn {
+#upload-file-btn {
   border: none;
   color: var(--app-blue-1);
   border-radius: 4px;
@@ -265,9 +265,16 @@ align-items: center;
 }
 
 #send-btn i,
-#file-upload-btn i{
+#upload-file-btn i{
   font-size: 1.25rem;
   font-weight: 500;
+}
+.file-type-preview-icon{
+  font-size:xx-large;
+}
+.file-name{
+  display: flex;
+  align-items: center;
 }
 .user-input-container{
   flex-grow: 1;
@@ -279,18 +286,20 @@ align-items: center;
   border-radius: .25rem;
 }
 
-.chat-input-files{
+#input-files-preview-container{
   display: flex;
   justify-content: start;
+  gap: .5rem;
+  flex-wrap: wrap;
   width: 100%;
 }
-#file-icon-container{
+.file-icon-container{
   position: relative;
   background-color: #b0b0b0; 
   justify-self: start;
   border-radius: .5rem;
   padding: .25rem;
-  display: none;
+  display: flex;
 }
 .remove-file-btn{
   position: absolute;
@@ -300,7 +309,7 @@ align-items: center;
   top: -5px;
   right: -5px;
   cursor: pointer;
-  padding: 1px 4px;
+  padding: 1px 2px;
   margin: 0;
 }
 @media (max-width: 768px){

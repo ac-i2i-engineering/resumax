@@ -49,7 +49,7 @@
           </div>
         </nav>
         <div class="chat-box" id="chat-box">
-          <!-- 
+          <!-- sample message user and bot messages
           <div class="message user-message">
             some
           </div>
@@ -66,20 +66,21 @@
                id="file"
                required
                accept=".pdf"
+               multiple
                style="display: none"
              />
-         <button type="button" id="file-upload-btn">
+         <button type="button" id="upload-file-btn">
             <i class="bi bi-paperclip"></i>
           </button>
          <div class="user-input-container">
-           <div class="chat-input-files">
-             <div id="file-icon-container">
-                <i class="bi bi-file-earmark-pdf"></i>
-                <span id="file-name"></span>
-                <span class="remove-file-btn">
-                  <i class="bi bi-x"></i>
-                </span>
+           <div id="input-files-preview-container">
+            <!-- sample file icon container
+             <div class="file-icon-container">
+                <i class="bi bi-file-earmark-pdf file-type-preview-icon"></i>
+                <span class="file-name"></span>
+                <i class="bi bi-x remove-file-btn"></i>
              </div>
+             -->
            </div>
            <textarea type="text" name="prompt-text" id="chat-input-text" placeholder="Type a message..." rows="1"></textarea>
          </div>
