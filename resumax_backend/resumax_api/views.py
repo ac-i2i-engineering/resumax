@@ -4,7 +4,7 @@ from resumax_algo.models import ConversationsThread, Conversation
 from rest_framework.decorators import api_view,parser_classes
 from rest_framework.response import Response
 from resumax_algo.aiModel import generateContent
-from .serializers import AttachedFileSerializer, ConversationSerializer
+from .serializers import AttachedFileSerializer, ConversationSerializer, ConversationsThreadSerializer
 from django.core.files.storage import FileSystemStorage
 # Create your views here.
 @login_required
@@ -27,7 +27,13 @@ def get_conversations(request, thread_id):
                 ]
             }
         return Response(context)
-    if request.method == 'POST':        
+    if request.method == 'POST':
+        # Create a new thread if the request thread_id is 0
+        if thread_id == 0:       
+            title = request.data.get("prompt-text")[0:20]
+            thread = ConversationsThread.objects.create(title=title, user=user)
+            thread_id = thread.id
+        # save conversation
         promptText = request.data.get("prompt-text")
         promptFile = request.FILES.get("prompt-file")
         # if no file is provided
@@ -85,7 +91,7 @@ def get_conversations(request, thread_id):
 
 @login_required
 @api_view(['GET'])
-def threads(request):
+def get_all_threads(request):
     user = request.user
     allThreads = ConversationsThread.objects.filter(user=user)
     # Reverse the order of threads to start from the most recent
@@ -101,3 +107,14 @@ def threads(request):
         ].__reversed__()
     }
     return Response(context)
+
+@login_required
+@api_view(['DELETE'])
+def delete_thread(request, thread_id):
+    user = request.user
+    try:
+        thread = ConversationsThread.objects.get(user=user, id=thread_id)
+    except ConversationsThread.DoesNotExist:
+        return Response({"error": "Thread not found"}, status=404)
+    thread.delete()
+    return Response({"message": "Thread deleted successfully"}, status=200)
