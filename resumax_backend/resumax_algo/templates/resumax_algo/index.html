@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" type="text/css" href="{% static 'index.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" integrity="sha384-tViUnnbYAV00FLIhhi3v/dWt3Jxw4gZQcNoSCxCIFNJVCx7/D55/wXsrNIRANwdD" crossorigin="anonymous">
     <title>ResuMax</title>
   </head>
   <body>
@@ -14,26 +15,18 @@
         <button id="close-side-panel-btn" class="side-panel-toggler-btn">☰</button>
       </div>
       <div class="side-panel-body">
-        <button id="start-new-chat-btn">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v4h4v2h-4v4h-2v-4H7v-2h4z"
-            />
-          </svg>
-          <span>new chat</span>
+        <button id="create-thread-btn">
+          <i class="bi bi-plus-circle"></i>
+          <span>New Chat</span>
         </button>
         <div id="chat-history-range-container">
           <div class="history-range">
             <p class="history-range-title">Today</p>
             <div class="thread-container">
-                  <p class="chat-title">lorem ipsum sit do la mere ipsum sit do la mere<span>
-                    <?xml version="1.0" ?><svg height="24" viewBox="0 0 20 20" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M6 10C6 11.1046 5.10457 12 4 12C2.89543 12 2 11.1046 2 10C2 8.89543 2.89543 8 4 8C5.10457 8 6 8.89543 6 10Z" fill="currentColor"/><path d="M12 10C12 11.1046 11.1046 12 10 12C8.89543 12 8 11.1046 8 10C8 8.89543 8.89543 8 10 8C11.1046 8 12 8.89543 12 10Z" fill="currentColor"/><path d="M16 12C17.1046 12 18 11.1046 18 10C18 8.89543 17.1046 8 16 8C14.8954 8 14 8.89543 14 10C14 11.1046 14.8954 12 16 12Z" fill="currentColor"/></svg></span>
+                  <p class="thread-title">lorem ipsum sit do la mere ipsum sit do la mere
+                    <span>
+                      <i class="bi bi-trash"></i>
+                    </span>
                   </p>
             </div>
           </div>
@@ -56,7 +49,7 @@
           </div>
         </nav>
         <div class="chat-box" id="chat-box">
-          <!-- 
+          <!-- sample message user and bot messages
           <div class="message user-message">
             some
           </div>
@@ -73,62 +66,26 @@
                id="file"
                required
                accept=".pdf"
+               multiple
                style="display: none"
              />
-         <button type="button" id="file-upload-btn">
-               <svg height="24px" width="24px" 
-                     version="1.1" id="Layer_1" 
-                     xmlns="http://www.w3.org/2000/svg" 
-                     xmlns:xlink="http://www.w3.org/1999/xlink" 
-                     viewBox="0 0 280.067 280.067" 
-                     xml:space="preserve" 
-                     fill="currentColor">
-                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path style="fill:;" d="M149.823,257.142c-31.398,30.698-81.882,30.576-113.105-0.429 c-31.214-30.987-31.337-81.129-0.42-112.308l-0.026-0.018L149.841,31.615l14.203-14.098c23.522-23.356,61.65-23.356,85.172,0 s23.522,61.221,0,84.586l-125.19,123.02l-0.044-0.035c-15.428,14.771-40.018,14.666-55.262-0.394 c-15.244-15.069-15.34-39.361-0.394-54.588l-0.044-0.053l13.94-13.756l69.701-68.843l13.931,13.774l-83.632,82.599 c-7.701,7.596-7.701,19.926,0,27.53s20.188,7.604,27.88,0L235.02,87.987l-0.035-0.026l0.473-0.403 c15.682-15.568,15.682-40.823,0-56.39s-41.094-15.568-56.776,0l-0.42,0.473l-0.026-0.018l-14.194,14.089L50.466,158.485 c-23.522,23.356-23.522,61.221,0,84.577s61.659,23.356,85.163,0l99.375-98.675l14.194-14.089l14.194,14.089l-14.194,14.098 l-99.357,98.675C149.841,257.159,149.823,257.142,149.823,257.142z"></path> </g> </g></svg>
-         </button>
+         <button type="button" id="upload-file-btn">
+            <i class="bi bi-paperclip"></i>
+          </button>
          <div class="user-input-container">
-           <div class="chat-input-files">
-             <div id="file-icon-container">
-               <svg
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               fill="currentColor"
-               viewBox="0 0 24 24"
-             >
-               <path
-                 d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
-               />
-             </svg>
-             <span id="file-name"></span>
-             <span class="remove-file-btn">
-               <svg
-                 xmlns="http://www.w3.org/2000/svg"
-                 width="10"
-                 height="10"
-                 fill="currentColor"
-                 viewBox="0 0 24 24"
-               >
-                 <path
-                   d="M19 6.41l-1.41-1.41-5.59 5.59-5.59-5.59-1.41 1.41 5.59 5.59-5.59 5.59 1.41 1.41 5.59-5.59 5.59 5.59 1.41-1.41-5.59-5.59z"
-                 />
-               </svg>
-             </span>
+           <div id="input-files-preview-container" class="files-preview-container">
+            <!-- sample file icon container
+             <div class="file-icon-container">
+                <i class="bi bi-file-earmark-pdf file-type-preview-icon"></i>
+                <span class="file-name"></span>
+                <i class="bi bi-x remove-file-btn"></i>
              </div>
+             -->
            </div>
            <textarea type="text" name="prompt-text" id="chat-input-text" placeholder="Type a message..." rows="1"></textarea>
          </div>
          <button type="submit" id="send-btn">
-           <svg
-             xmlns="http://www.w3.org/2000/svg"
-             width="24px"
-             height="24px"
-             fill="currentColor"
-             viewBox="0 0 24 24"
-           >
-             <path
-               d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"
-             />
-           </svg>
+          <i class="bi bi-send"></i>
          </button>
         </form>
     </div>
