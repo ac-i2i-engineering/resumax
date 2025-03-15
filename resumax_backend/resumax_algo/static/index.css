@@ -94,7 +94,7 @@ body {
   margin-top: 1rem;
   font-size: .8rem;
 }
-#start-new-chat-btn{
+#create-thread-btn{
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -119,7 +119,7 @@ body {
   font-weight: bold;
   margin: .25rem 0;
 }
-.chat-title{
+.thread-title{
   font-size: 14px;
   font-weight:1;
   text-wrap: nowrap;
@@ -132,26 +132,25 @@ body {
   border-radius: 0.25rem;
 
 }
-.chat-title:hover,#start-new-chat-btn:hover{
+.thread-title:hover,#create-thread-btn:hover{
   background-color: #3b4045;
   cursor: pointer;
 }
-.chat-title span{
+.thread-title span{
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
-  padding: 0 .25rem;
-  margin: 0;
-  display: flex;
-  background-color: #43494e;
-  text-align: center;
-  justify-content: center;
-  box-shadow: -7px -1px 7px 3px #43494e;
   display: none;
+  padding: 0 .25rem;
+  background-color: #43494e;
+  box-shadow: -7px -1px 7px 3px #43494e;
   opacity: 0.5;
 }
-.chat-title span:hover{
+.thread-title span i{
+  margin: auto;
+}
+.thread-title span:hover{
   opacity: 1;
 }
 .chat-container {
@@ -218,7 +217,10 @@ body {
   max-width: 80%;
   word-wrap: break-word;
 }
-
+.text-box{
+  padding: 0;
+  text-align: start;
+}
 .chat-form{
 border-radius: 1rem;
 padding: 0.6rem;
@@ -255,7 +257,7 @@ align-items: center;
   margin-top: .5rem;
 }
 #send-btn,
-#file-upload-btn {
+#upload-file-btn {
   border: none;
   color: var(--app-blue-1);
   border-radius: 4px;
@@ -263,6 +265,19 @@ align-items: center;
   align-self: end;
   padding: .5rem .5rem .25rem .5rem;
   margin: 0;
+}
+
+#send-btn i,
+#upload-file-btn i{
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+.file-type-preview-icon{
+  font-size:xx-large;
+}
+.file-name{
+  display: flex;
+  align-items: center;
 }
 .user-input-container{
   flex-grow: 1;
@@ -274,18 +289,24 @@ align-items: center;
   border-radius: .25rem;
 }
 
-.chat-input-files{
+.files-preview-container{
   display: flex;
   justify-content: start;
+  gap: .5rem;
+  flex-wrap: wrap;
   width: 100%;
 }
-#file-icon-container{
+
+.user-message .files-preview-container{
+  margin-bottom: .5rem;
+}
+.file-icon-container{
   position: relative;
   background-color: #b0b0b0; 
   justify-self: start;
   border-radius: .5rem;
   padding: .25rem;
-  display: none;
+  display: flex;
 }
 .remove-file-btn{
   position: absolute;
@@ -295,7 +316,7 @@ align-items: center;
   top: -5px;
   right: -5px;
   cursor: pointer;
-  padding: 1px 4px;
+  padding: 1px 2px;
   margin: 0;
 }
 @media (max-width: 768px){

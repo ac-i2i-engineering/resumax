@@ -1,16 +1,19 @@
 from django.contrib.auth.decorators import login_required
+from django.forms import ValidationError
 from rest_framework.parsers import MultiPartParser
-from resumax_algo.models import ConversationsThread, Conversation
+from resumax_algo.models import AttachedFile, ConversationsThread, Conversation
 from rest_framework.decorators import api_view,parser_classes
 from rest_framework.response import Response
 from resumax_algo.aiModel import generateContent
-from .serializers import AttachedFileSerializer, ConversationSerializer
+from .serializers import AttachedFileSerializer, ConversationSerializer, ConversationsThreadSerializer
 from django.core.files.storage import FileSystemStorage
+import asyncio
+
 # Create your views here.
 @login_required
 @api_view(['GET', 'POST'])
 @parser_classes([MultiPartParser])
-def get_conversations(request, thread_id):
+def conversations(request, thread_id):
     user = request.user
     if request.method == 'GET':
         try:
@@ -22,19 +25,26 @@ def get_conversations(request, thread_id):
                     {
                         "prompt": conversation.prompt,
                         "response": conversation.response,
+                        "attachedFiles": [ attachedFile.fileName for attachedFile in AttachedFile.objects.filter(conversation=conversation.id)]
                     }
                     for conversation in Conversation.objects.filter(thread=currentThread)
                 ]
             }
         return Response(context)
-    if request.method == 'POST':        
+    if request.method == 'POST':
+        # Create a new thread if the request thread_id is 0
+        if thread_id == 0:       
+            title = request.data.get("prompt-text")[0:20]
+            thread = ConversationsThread.objects.create(title=title, user=user)
+            thread_id = thread.id
+        # save conversation
         promptText = request.data.get("prompt-text")
-        promptFile = request.FILES.get("prompt-file")
+        promptAttachedFiles = request.FILES.getlist("prompt-file")
         # if no file is provided
-        if not promptFile:
+        if not promptAttachedFiles:
             # Generate response
             try:
-                response = generateContent(promptText)
+                response = asyncio.run(generateContent(promptText))
             except Exception as e:
                 return Response({"error": str(e)}, status=500)
             # Save conversation to the database
@@ -49,15 +59,21 @@ def get_conversations(request, thread_id):
             else:
                 return Response({"error": promptSerializer.errors}, status=400)
             # Return response
-            return Response({"text": response})
+            return Response({"response": response})
         # # if file is provided
         #upload file to media folder
-        fs = FileSystemStorage()
-        filename = fs.save(promptFile.name, promptFile)
-        uploaded_file_url = fs.url(filename)
+        uploaded_file_urls = [] 
+        for promptAttachedFile in promptAttachedFiles:
+            validate_file(promptAttachedFile)
+            # sanitize file name    
+            safe_filename = secure_filename(promptAttachedFile.name)
+            fs = FileSystemStorage()
+            filename = fs.save(safe_filename, promptAttachedFile)
+            uploaded_file_urls.append(fs.url(filename))
         # Generate response
         try:
-            response = generateContent(promptText, uploaded_file_url)
+            # Generate response considering attached files
+            response = asyncio.run(generateContent(promptText, uploaded_file_urls)) 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
         # Save conversation to the database
@@ -69,23 +85,26 @@ def get_conversations(request, thread_id):
         promptSerializer = ConversationSerializer(data = promptData)
         if promptSerializer.is_valid():
             conversation = promptSerializer.save()
-            # save file to the database
-            fileData = {
-                "Conversation": conversation.id, 
-                "fileName": filename
-            }
-            fileSerializer = AttachedFileSerializer(data=fileData)
-            if fileSerializer.is_valid():
-                fileSerializer.save()                
-                return Response({"text": response})
-            return Response({"error": fileSerializer.errors}, status=400)
+            # save files to the database
+            fileNames = [ url.split("/")[-1] for url in uploaded_file_urls]
+            for fileName in fileNames:
+                fileData = {
+                    "conversation": conversation.id, 
+                    "fileName": fileName
+                }
+                fileSerializer = AttachedFileSerializer(data=fileData)
+                if fileSerializer.is_valid():
+                    fileSerializer.save() 
+                else:               
+                    return Response({"error": fileSerializer.errors}, status=400)
+            return Response({"response": response, "attachedFiles": fileNames})
         else:
             return Response({"error": promptSerializer.errors}, status=400)
     
 
 @login_required
 @api_view(['GET'])
-def threads(request):
+def get_all_threads(request):
     user = request.user
     allThreads = ConversationsThread.objects.filter(user=user)
     # Reverse the order of threads to start from the most recent
@@ -101,3 +120,26 @@ def threads(request):
         ].__reversed__()
     }
     return Response(context)
+
+@login_required
+@api_view(['DELETE'])
+def delete_thread(request, thread_id):
+    user = request.user
+    try:
+        thread = ConversationsThread.objects.get(user=user, id=thread_id)
+    except ConversationsThread.DoesNotExist:
+        return Response({"error": "Thread not found"}, status=404)
+    thread.delete()
+    return Response({"message": "Thread deleted successfully"}, status=200)
+
+def validate_file(file):  
+    allowed_types = ['application/pdf']  
+    if file.content_type not in allowed_types:  
+        raise ValidationError('Invalid file type')  
+    if file.size > 5242880:  # 5MB limit  
+        raise ValidationError('File too large')  
+    return True 
+
+def secure_filename(filename):
+    return filename.replace(" ", "_")
+# TODO: add a functionality to vectorize all the messages in the same thread and send them with the prompt to the server
