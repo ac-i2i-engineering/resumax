@@ -62,14 +62,14 @@ class Conversation(models.Model):
     Chat model to store chat messages in the database for retrieval.
     '''
     thread = models.ForeignKey(ConversationsThread, on_delete=models.CASCADE)
-    prompt = models.TextField(max_length=1000,help_text="The user's prompt",default="")
-    response = models.TextField(max_length=1500,help_text="The bot's response",default="")
+    prompt = models.TextField(max_length=3000,help_text="The user's prompt",default="")
+    response = models.TextField(max_length=3000,help_text="The bot's response",default="")
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return f"Conversation {self.id}"
 
 class AttachedFile(models.Model):
-    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, default=None)
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
     fileName = models.TextField(max_length=500,help_text="The file path",default="")
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):

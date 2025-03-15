@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.forms import ValidationError
 from rest_framework.parsers import MultiPartParser
 from resumax_algo.models import AttachedFile, ConversationsThread, Conversation
 from rest_framework.decorators import api_view,parser_classes
@@ -6,6 +7,8 @@ from rest_framework.response import Response
 from resumax_algo.aiModel import generateContent
 from .serializers import AttachedFileSerializer, ConversationSerializer, ConversationsThreadSerializer
 from django.core.files.storage import FileSystemStorage
+import asyncio
+
 # Create your views here.
 @login_required
 @api_view(['GET', 'POST'])
@@ -41,7 +44,7 @@ def conversations(request, thread_id):
         if not promptAttachedFiles:
             # Generate response
             try:
-                response = generateContent(promptText)
+                response = asyncio.run(generateContent(promptText))
             except Exception as e:
                 return Response({"error": str(e)}, status=500)
             # Save conversation to the database
@@ -61,13 +64,16 @@ def conversations(request, thread_id):
         #upload file to media folder
         uploaded_file_urls = [] 
         for promptAttachedFile in promptAttachedFiles:
+            validate_file(promptAttachedFile)
+            # sanitize file name    
+            safe_filename = secure_filename(promptAttachedFile.name)
             fs = FileSystemStorage()
-            filename = fs.save(promptAttachedFile.name, promptAttachedFile)
+            filename = fs.save(safe_filename, promptAttachedFile)
             uploaded_file_urls.append(fs.url(filename))
         # Generate response
         try:
             # Generate response considering attached files
-            response = generateContent(promptText, uploaded_file_urls)
+            response = asyncio.run(generateContent(promptText, uploaded_file_urls)) 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
         # Save conversation to the database
@@ -126,4 +132,14 @@ def delete_thread(request, thread_id):
     thread.delete()
     return Response({"message": "Thread deleted successfully"}, status=200)
 
+def validate_file(file):  
+    allowed_types = ['application/pdf']  
+    if file.content_type not in allowed_types:  
+        raise ValidationError('Invalid file type')  
+    if file.size > 5242880:  # 5MB limit  
+        raise ValidationError('File too large')  
+    return True 
+
+def secure_filename(filename):
+    return filename.replace(" ", "_")
 # TODO: add a functionality to vectorize all the messages in the same thread and send them with the prompt to the server

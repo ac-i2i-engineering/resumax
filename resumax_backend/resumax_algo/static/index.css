@@ -218,7 +218,7 @@ body {
   word-wrap: break-word;
 }
 .text-box{
-  padding: .5rem 0;
+  padding: 0;
   text-align: start;
 }
 .chat-form{
@@ -295,6 +295,10 @@ align-items: center;
   gap: .5rem;
   flex-wrap: wrap;
   width: 100%;
+}
+
+.user-message .files-preview-container{
+  margin-bottom: .5rem;
 }
 .file-icon-container{
   position: relative;

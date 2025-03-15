@@ -1,4 +1,3 @@
-DEBUGMODE = false;  
 const chatBox = document.getElementById("chat-box");
 const sidePanel = document.getElementById("side-panel");
 const attachedFiles = document.getElementById("file");
@@ -41,7 +40,6 @@ function resizeTextarea() {
 function sendPrompt(promptData) {
   // add the user message to the chat box
   addUserMessage(promptData.get("prompt-text"), promptData.getAll("prompt-file").map(file => file.name));
-  debugger;
   // send the prompt to the server  
   const requestOptions = {
     method: 'POST',
@@ -50,7 +48,7 @@ function sendPrompt(promptData) {
     },
     body:promptData,
     };
-  fetch("../api/thread/"+currentThreadId, requestOptions)
+  fetch("../api/threads/"+currentThreadId+"/", requestOptions)
   .then((response) => response.json())
   .then((response) => {
     /* if the current thread is 0, reload the threads
@@ -60,7 +58,7 @@ function sendPrompt(promptData) {
       loadThreads();
     }
     // add the bot response to the chat box
-    addBotMessage(response.response, response.attachedFiles);
+    addBotMessage(response.response);
   })
   .catch((error) => console.error("Error fetching data:", error));
 }
@@ -156,57 +154,56 @@ function handleSideBarToggleEffect() {
 // loads threads from the server api
 // adds the threads to the side panel
 // set the first thread as the current thread
-function loadThreads() {
-  isMostRecent = true;
-  // fetch the threads from the server
-  fetch("../api/threads")
-    .then((response) => response.json())
-    .then((data) => {
-      // add the chat history to the side panel
-      const today = new Date();
-      const historyRange = document.querySelector(".thread-container");
-      historyRange.innerHTML = "";
-      data.threads.forEach((thread) => {
-        if(isMostRecent){
-          // set the first thread as the current thread
-          currentThreadId = thread.id;
-          isMostRecent = false;
-        }
-        const threadCreatedAt = new Date(thread.created_at);
-        const timeDiff = today.getTime() - threadCreatedAt.getTime();
-        const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
-        const chatTitleElement = document.createElement("p");
-        const deleteThreadBtn = document.createElement("span");
-        const icon = document.createElement('i');
-        chatTitleElement.classList.add("thread-title");
-        chatTitleElement.textContent = thread.title;
-        chatTitleElement.addEventListener("click", ()=>{loadConversations(thread.id)});
-        deleteThreadBtn.addEventListener("click", ()=>{deleteThread(thread.id)});
-        icon.classList.add("bi","bi-trash3-fill");
-        deleteThreadBtn.appendChild(icon);
-        // You can format the date difference as needed
-        let timeAgo;
-        if (diffDays < 1) {
-          timeAgo = "Today";
-        } else if (diffDays === 1) {
-          timeAgo = "Yesterday";
-        } else {
-          timeAgo = `${diffDays} days ago`;
-        }
-
-        chatTitleElement.innerHTML = thread.title; // Added thread title
-        chatTitleElement.onmouseover = () =>{
-          deleteThreadBtn.style.display = "flex";
-        }
-        chatTitleElement.onmouseout = () =>{
-          deleteThreadBtn.style.display = "none";
-        }
-        chatTitleElement.appendChild(deleteThreadBtn);
-        historyRange.appendChild(chatTitleElement);
-      });
-    })
-    .then(()=>loadConversations())
-    .catch(error => console.error('Error fetching data:', error));
+function loadThreads(focusFirstThread=true, autoLoadConversations=true) {
+// fetch the threads from the server
+fetch("../api/threads")
+  .then((response) => response.json())
+  .then((data) => {
+    // add the chat history to the side panel
+    const today = new Date();
+    const historyRange = document.querySelector(".thread-container");
+    historyRange.innerHTML = "";
+    data.threads.forEach((thread) => {
+      if (focusFirstThread) {
+        currentThreadId = thread.id;
+        focusFirstThread = false;
+      }
+      const threadCreatedAt = new Date(thread.created_at);
+      const timeDiff = today.getTime() - threadCreatedAt.getTime();
+      const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      const chatTitleElement = document.createElement("p");
+      const deleteThreadBtn = document.createElement("span");
+      const icon = document.createElement('i');
+      chatTitleElement.classList.add("thread-title");
+      chatTitleElement.textContent = thread.title;
+      chatTitleElement.addEventListener("click", ()=>{loadConversations(thread.id)});
+      deleteThreadBtn.addEventListener("click", ()=>{deleteThread(thread.id)});
+      icon.classList.add("bi","bi-trash3-fill");
+      deleteThreadBtn.appendChild(icon);
+      // You can format the date difference as needed
+      let timeAgo;
+      if (diffDays < 1) {
+        timeAgo = "Today";
+      } else if (diffDays === 1) {
+        timeAgo = "Yesterday";
+      } else {
+        timeAgo = `${diffDays} days ago`;
+      }
+      chatTitleElement.innerHTML = thread.title; // Added thread title
+      chatTitleElement.onmouseover = () =>{
+        deleteThreadBtn.style.display = "flex";
+      }
+      chatTitleElement.onmouseout = () =>{
+        deleteThreadBtn.style.display = "none";
+      }
+      chatTitleElement.appendChild(deleteThreadBtn);
+      historyRange.appendChild(chatTitleElement);
+    });
+  })
+  .then(() => {
+    if(autoLoadConversations) loadConversations()
+  })
+  .catch(error => console.error('Error fetching data:', error));
 }
 // loads the conversation in the thread with certain ID from the server api
 // if no threadId is provided, it loads the currentThreadId(recently created thread)
@@ -216,9 +213,9 @@ function loadConversations(threadId=currentThreadId) {
   // if the threadId is 0, don't load the conversations
   if (threadId == 0) return
   //fetch the conversations from the server
-  fetch("../api/thread/"+threadId)
+  fetch("../api/threads/"+threadId+"/")
     .then((response) => {
-      if (!response.ok && !DEBUGMODE) return;
+      if (!response.ok) return;
       return response.json()
     })
     .then((response) => {
@@ -251,7 +248,8 @@ function addUserMessage(message, attachedFiles=null) {
   const messageElement = document.createElement("div");
   const textBox = document.createElement("div");
   messageElement.classList.add("message", "user-message");
-  if(attachedFiles){
+  //if the are attached files, add them to the message
+  if(attachedFiles != null && attachedFiles[0] != ''){
     const filesPreviewContainer = document.createElement("div");
     filesPreviewContainer.classList.add("files-preview-container");
     attachedFiles.forEach((file) => {
@@ -294,9 +292,9 @@ function deleteThread(threadId) {
         'X-CSRFToken': csrfToken,
     },
     };
-  fetch("../api/thread/"+threadId+"/delete", requestOptions)
+  fetch("../api/threads/"+threadId+"/delete/", requestOptions)
   .then((response) => {
-    if (!response.ok && !DEBUGMODE) return;
+    if (!response.ok) return;
     return response.json()
   })
   .then(() => loadThreads())
