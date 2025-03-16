@@ -114,7 +114,7 @@ function addInputFieldFilePreview(index) {
   fileIcon.classList.add("bi", "bi-file-earmark-pdf", "file-type-preview-icon");
   fileName.classList.add("file-name");
   removeFileBtn.classList.add("bi", "bi-x", "remove-file-btn");
-  fileName.textContent = attachedFiles.files[index].name;
+  fileName.textContent = formatPreviewFileName(attachedFiles.files[index].name);
   fileIconContainer.appendChild(fileIcon);
   fileIconContainer.appendChild(fileName);
   fileIconContainer.appendChild(removeFileBtn);
@@ -129,7 +129,7 @@ function addConversationFilePreview(name) {
   fileIconContainer.classList.add("file-icon-container");
   fileIcon.classList.add("bi", "bi-file-earmark-pdf", "file-type-preview-icon");
   fileName.classList.add("file-name");
-  fileName.textContent = name;
+  fileName.textContent = formatPreviewFileName(name);
   fileIconContainer.appendChild(fileIcon);
   fileIconContainer.appendChild(fileName);
   return fileIconContainer;
@@ -144,7 +144,7 @@ function deleteInputFile(index) {
 }
 
 function handleSideBarToggleEffect() {
-  document.getElementById("chat-container").classList.toggle("minimized");
+  document.getElementById("main-container").classList.toggle("minimized");
   sidePanel.classList.toggle("active");
   sidePanelBackdrop.classList.toggle("active");
   closeSidePanelBtn.classList.toggle("active");
@@ -218,7 +218,11 @@ function loadConversations(threadId) {
     threadId = sessionStorage.getItem("currentThreadId");
   }
   // if the threadId is 0, don't load the conversations
-  if (threadId == 0) return
+  if (threadId == 0){
+    chatBox.innerHTML = "";
+    promptInputForm.classList.add("new-chat");
+    return;
+  }
   //fetch the conversations from the server
   fetch("../api/threads/"+threadId+"/")
     .then((response) => {
@@ -255,12 +259,15 @@ function addUserMessage(message, attachedFiles=null) {
   const messageElement = document.createElement("div");
   const textBox = document.createElement("div");
   messageElement.classList.add("message", "user-message");
+  // remove the new-chat class from the promptInputForm
+  promptInputForm.classList.remove("new-chat");
   //if the are attached files, add them to the message
 if(attachedFiles != null && attachedFiles.length > 0 && attachedFiles[0] != ''){
     const filesPreviewContainer = document.createElement("div");
     filesPreviewContainer.classList.add("files-preview-container");
-    attachedFiles.forEach((file) => {
-      filesPreviewContainer.appendChild(addConversationFilePreview(file));
+    attachedFiles.forEach((fileName) => {
+      fileName = formatPreviewFileName(fileName);
+      filesPreviewContainer.appendChild(addConversationFilePreview(fileName));
     });
     messageElement.appendChild(filesPreviewContainer);
   }
@@ -284,6 +291,7 @@ function createThread() {
   // set the current thread to 0
   sessionStorage.setItem("currentThreadId", 0);
   chatBox.innerHTML = "";
+  promptInputForm.classList.add("new-chat");
 }
 
 // delete a thread
@@ -302,13 +310,21 @@ function deleteThread(threadId) {
       if(sessionStorage.getItem("threadsCount") == 1){
         sessionStorage.setItem("currentThreadId", 0);
         chatBox.innerHTML = "";
+        promptInputForm.classList.add("new-chat")
       }
       loadThreads()
      }
   })
   .catch((error) => console.error("Error fetching data:", error));
 }
-// TODO: make the initial thread on load doc to be zero
+
+function formatPreviewFileName(fileName){
+  if(fileName.length <= 10) return fileName;
+  const ext = fileName.split(".")[1];
+  const name = fileName.split(".")[0];
+  const formattedName = name.substring(0, 10) + "...";
+  return formattedName + "." + ext;
+}
 // TODO: limit the length of a file name preview
 // TODO: Enable thread categorization based on when they were created
 // TODO: look for pretty UI/UX

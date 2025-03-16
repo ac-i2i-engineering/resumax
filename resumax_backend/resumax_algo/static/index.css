@@ -1,5 +1,6 @@
 :root{
-  --side-nav-width: 250px;
+  --side-nav-width: 20rem;
+  --side-nav-width-neg: -20rem;
   --app-blue-1:rgb(0, 50, 97);
   --app-shadow-1: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
 }
@@ -41,7 +42,7 @@ body {
   background: none;
   border: none;
   color: #fff;
-  font-size: 24px;
+  font-size: 1.5rem;
   cursor: pointer;
   display: none;
 }
@@ -52,13 +53,13 @@ body {
   display: none;
 }
 .side-panel {
-  width: 250px;
+  width: var(--side-nav-width);
   height: 100vh;
   background-color: #333;
   color: #fff;
   position: fixed;
   top: 0;
-  left: -250px;
+  left: var(--side-nav-width-neg);
   transition: left .7s ease;
   z-index: 1000;
   display: flex;
@@ -100,7 +101,7 @@ body {
   align-items: center;
   padding: .5rem;
   color: white;
-  font-size: 14px;
+  font-size: 1rem;
   gap: 0.5rem;
   background-color: inherit;
   border: 1px solid #444;
@@ -115,12 +116,12 @@ body {
   display: none;
 }
 .history-range-title{
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: bold;
   margin: .25rem 0;
 }
 .thread-title{
-  font-size: 14px;
+  font-size: 1rem;
   font-weight:1;
   text-wrap: nowrap;
   overflow: hidden;
@@ -153,15 +154,17 @@ body {
 .thread-title span:hover{
   opacity: 1;
 }
-.chat-container {
+.main-container {
   width: 100%;
   margin-top: 4.75rem;
   height: calc(100vh - 4.75rem);
   background-color: #fff;
   display: flex;
   flex-direction: column;
+  align-items: center;
   margin-left: auto;
   transition: width .7s ease;
+  position: relative;
 }
 
 .chat-header {
@@ -181,6 +184,7 @@ body {
   border-bottom: 1px solid #ddd;
   display: flex;
   flex-direction: column;
+  width:-webkit-fill-available;
 }
 
 .message {
@@ -223,7 +227,7 @@ body {
 }
 .chat-form{
 border-radius: 1rem;
-padding: 0.6rem;
+padding: 0.75rem;
 margin: 1rem;
 box-shadow: var(--app-shadow-1);
 background-color: white;
@@ -231,8 +235,15 @@ display: flex;
 gap: .5rem;
 justify-content: center;
 align-items: center;
+width:-webkit-fill-available;
+transition: width .7s ease;
 }
+.chat-form.new-chat{
+  width:80%;
+  position: absolute;
+  top: 40%;
 
+}
 .logout-btn {
   color: white;
   padding: 0.5rem 1rem;
@@ -331,17 +342,17 @@ align-items: center;
 }
 }
 @media (min-width: 768px) {
-  .chat-container {
-    width: calc(100% - 250px)
+  .main-container {
+    width: calc(100% - var(--side-nav-width));
   }
-  .chat-container.minimized {
+  .main-container.minimized {
     width: 100%;
   }
   .side-panel {
     left: 0;
   }
   .side-panel.active{
-    left: -250px !important;
+    left: var(--side-nav-width-neg) !important;
   }
   .side-panel .nav-app-name{
     visibility: visible;
