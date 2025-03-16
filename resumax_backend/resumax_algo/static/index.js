@@ -157,7 +157,7 @@ function handleSideBarToggleEffect() {
 // loads threads from the server api
 // adds the threads to the side panel
 // set the first thread as the current thread
-function loadThreads(focusFirstThread=true, autoLoadConversations=true) {
+function loadThreads(focusFirstThread=true) {
 // fetch the threads from the server
 fetch("../api/threads")
   .then((response) => response.json())
@@ -166,6 +166,7 @@ fetch("../api/threads")
     const today = new Date();
     const historyRange = document.querySelector(".thread-container");
     historyRange.innerHTML = "";
+    sessionStorage.setItem("threadsCount", data.threads.length);
     data.threads.forEach((thread) => {
       if (focusFirstThread) {
         // set the first thread as the current thread
@@ -204,9 +205,7 @@ fetch("../api/threads")
       historyRange.appendChild(chatTitleElement);
     });
   })
-  .then(() => {
-    if(autoLoadConversations) loadConversations()
-  })
+  .then(() =>loadConversations())
   .catch(error => console.error('Error fetching data:', error));
 }
 // loads the conversation in the thread with certain ID from the server api
@@ -289,10 +288,6 @@ function createThread() {
 
 // delete a thread
 function deleteThread(threadId) {
-  /* temporarily set the currentThreadId to 0 to avoid errors if 
-  no other threads to load after deleting the current thread
-  */
-  sessionStorage.getItem("currentThreadId", 0);
   // delete the thread from the server and reload the threads
   const requestOptions = {
     method: 'DELETE',
@@ -303,9 +298,14 @@ function deleteThread(threadId) {
   fetch("../api/threads/"+threadId+"/delete/", requestOptions)
   .then((response) => {
     if (!response.ok) return;
-    return response.json()
+    if (threadId == sessionStorage.getItem("currentThreadId")) {
+      if(sessionStorage.getItem("threadsCount") == 1){
+        sessionStorage.setItem("currentThreadId", 0);
+        chatBox.innerHTML = "";
+      }
+      loadThreads()
+     }
   })
-  .then(() => loadThreads())
   .catch((error) => console.error("Error fetching data:", error));
 }
 // TODO: make the initial thread on load doc to be zero
