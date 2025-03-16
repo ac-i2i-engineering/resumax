@@ -12,11 +12,13 @@ const sidePanelBackdrop = document.getElementById("side-panel-backdrop");
 const inputFilesPreviewContainer = document.getElementById("input-files-preview-container");
 const chatHistoryRangeContainer = document.getElementById("chat-history-range-container");
 const csrfToken = getCookie('csrftoken') || document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-// initialize the thread id
-let currentThreadId = 0;
+// initialize the thread id as a session value
+if (!sessionStorage.getItem("currentThreadId")){
+  sessionStorage.setItem("currentThreadId", 0);
+}
 
 document.addEventListener("DOMContentLoaded", (event) => {
-  loadThreads();
+  loadThreads(focusFirstThread=false);
 });
 
 uploadFileBtn.addEventListener("click", () => {attachedFiles.click()});
@@ -38,6 +40,7 @@ function resizeTextarea() {
 // sends the prompt to the server and gets the bot response
 // add the received bot response to the chat box
 function sendPrompt(promptData) {
+  const currentThreadId = sessionStorage.getItem("currentThreadId");
   // add the user message to the chat box
   addUserMessage(promptData.get("prompt-text"), promptData.getAll("prompt-file").map(file => file.name));
   // send the prompt to the server  
@@ -165,7 +168,8 @@ fetch("../api/threads")
     historyRange.innerHTML = "";
     data.threads.forEach((thread) => {
       if (focusFirstThread) {
-        currentThreadId = thread.id;
+        // set the first thread as the current thread
+        sessionStorage.setItem("currentThreadId",thread.id);
         focusFirstThread = false;
       }
       const threadCreatedAt = new Date(thread.created_at);
@@ -207,9 +211,13 @@ fetch("../api/threads")
 }
 // loads the conversation in the thread with certain ID from the server api
 // if no threadId is provided, it loads the currentThreadId(recently created thread)
-function loadConversations(threadId=currentThreadId) {
+function loadConversations(threadId) {
   //change the global variable currentThread to the threadId
-  currentThreadId = threadId;
+  if(threadId){
+    sessionStorage.setItem("currentThreadId", threadId)}
+    else{
+    threadId = sessionStorage.getItem("currentThreadId");
+  }
   // if the threadId is 0, don't load the conversations
   if (threadId == 0) return
   //fetch the conversations from the server
@@ -275,7 +283,7 @@ function addBotMessage(message) {
 // create a new thread
 function createThread() {
   // set the current thread to 0
-  currentThreadId = 0;
+  sessionStorage.setItem("currentThreadId", 0);
   chatBox.innerHTML = "";
 }
 
@@ -284,7 +292,7 @@ function deleteThread(threadId) {
   /* temporarily set the currentThreadId to 0 to avoid errors if 
   no other threads to load after deleting the current thread
   */
-  currentThreadId = 0;
+  sessionStorage.getItem("currentThreadId", 0);
   // delete the thread from the server and reload the threads
   const requestOptions = {
     method: 'DELETE',
