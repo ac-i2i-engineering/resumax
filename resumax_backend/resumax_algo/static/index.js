@@ -163,46 +163,62 @@ fetch("../api/threads")
   .then((response) => response.json())
   .then((data) => {
     // add the chat history to the side panel
+    const dateRanges = [
+      { days: 1, title: "Today",threads:[]},
+      { days: 2, title: "Yesterday",threads:[]},
+      { days: 7, title: "This week",threads:[]},
+      { days: 30, title: "This month",threads:[]},
+      { days: 365, title: "This year",threads:[]},
+      { days: 730, title: "Older",threads:[]},
+    ]
+    // categorize the threads based on when they were created
     const today = new Date();
-    const historyRange = document.querySelector(".thread-container");
-    historyRange.innerHTML = "";
-    sessionStorage.setItem("threadsCount", data.threads.length);
-    data.threads.forEach((thread) => {
-      if (focusFirstThread) {
-        // set the first thread as the current thread
-        sessionStorage.setItem("currentThreadId",thread.id);
-        focusFirstThread = false;
+    dateRanges.forEach((dateRange,index) => {
+      dateRange.threads = 
+      data.threads.filter((thread) => {
+        const threadDate = new Date(thread.created_at);
+        const dateDiff = (today - threadDate) / (1000 * 3600 * 24);
+        if(index == 0) return dateDiff <= dateRange.days;
+        return dateDiff <= dateRange.days && dateDiff > dateRanges[index-1].days;
+      });
+    });
+    // add the threads to the side panel
+    chatHistoryRangeContainer.innerHTML = "";
+    dateRanges.forEach((dateRange) => {
+      if (dateRange.threads.length > 0) {
+        const dateRangeElement = document.createElement("div");
+        const dateRangeTitle = document.createElement("h3");
+        dateRangeElement.classList.add("history-range");
+        dateRangeTitle.classList.add("history-range-title");
+        dateRangeTitle.textContent = dateRange.title;
+        dateRangeElement.appendChild(dateRangeTitle);
+        chatHistoryRangeContainer.appendChild(dateRangeElement);
+        dateRange.threads.forEach((thread) => {
+          if (focusFirstThread) {
+            // set the first thread as the current thread
+            sessionStorage.setItem("currentThreadId",thread.id);
+            focusFirstThread = false;
+          }
+          const chatTitleElement = document.createElement("p");
+          const deleteThreadBtn = document.createElement("span");
+          const icon = document.createElement('i');
+          chatTitleElement.classList.add("thread-title");
+          chatTitleElement.textContent = thread.title;
+          chatTitleElement.addEventListener("click", ()=>{loadConversations(thread.id)});
+          deleteThreadBtn.addEventListener("click", ()=>{deleteThread(thread.id)});
+          icon.classList.add("bi","bi-trash3-fill");
+          deleteThreadBtn.appendChild(icon);
+          chatTitleElement.innerHTML = thread.title; // Added thread title
+          chatTitleElement.onmouseover = () =>{
+            deleteThreadBtn.style.display = "flex";
+          }
+          chatTitleElement.onmouseout = () =>{
+            deleteThreadBtn.style.display = "none";
+          }
+          chatTitleElement.appendChild(deleteThreadBtn);
+          dateRangeElement.appendChild(chatTitleElement);
+      });
       }
-      const threadCreatedAt = new Date(thread.created_at);
-      const timeDiff = today.getTime() - threadCreatedAt.getTime();
-      const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
-      const chatTitleElement = document.createElement("p");
-      const deleteThreadBtn = document.createElement("span");
-      const icon = document.createElement('i');
-      chatTitleElement.classList.add("thread-title");
-      chatTitleElement.textContent = thread.title;
-      chatTitleElement.addEventListener("click", ()=>{loadConversations(thread.id)});
-      deleteThreadBtn.addEventListener("click", ()=>{deleteThread(thread.id)});
-      icon.classList.add("bi","bi-trash3-fill");
-      deleteThreadBtn.appendChild(icon);
-      // You can format the date difference as needed
-      let timeAgo;
-      if (diffDays < 1) {
-        timeAgo = "Today";
-      } else if (diffDays === 1) {
-        timeAgo = "Yesterday";
-      } else {
-        timeAgo = `${diffDays} days ago`;
-      }
-      chatTitleElement.innerHTML = thread.title; // Added thread title
-      chatTitleElement.onmouseover = () =>{
-        deleteThreadBtn.style.display = "flex";
-      }
-      chatTitleElement.onmouseout = () =>{
-        deleteThreadBtn.style.display = "none";
-      }
-      chatTitleElement.appendChild(deleteThreadBtn);
-      historyRange.appendChild(chatTitleElement);
     });
   })
   .then(() =>loadConversations())
@@ -325,6 +341,4 @@ function formatPreviewFileName(fileName){
   const formattedName = name.substring(0, 10) + "...";
   return formattedName + "." + ext;
 }
-// TODO: limit the length of a file name preview
-// TODO: Enable thread categorization based on when they were created
 // TODO: look for pretty UI/UX
