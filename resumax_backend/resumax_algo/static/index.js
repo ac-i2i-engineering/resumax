@@ -256,7 +256,7 @@ function addUserMessage(message, attachedFiles=null) {
   const textBox = document.createElement("div");
   messageElement.classList.add("message", "user-message");
   //if the are attached files, add them to the message
-  if(attachedFiles != null && attachedFiles[0] != ''){
+if(attachedFiles != null && attachedFiles.length > 0 && attachedFiles[0] != ''){
     const filesPreviewContainer = document.createElement("div");
     filesPreviewContainer.classList.add("files-preview-container");
     attachedFiles.forEach((file) => {
