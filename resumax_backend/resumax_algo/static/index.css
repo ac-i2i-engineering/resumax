@@ -337,8 +337,8 @@ transition: width .7s ease;
 #side-panel-backdrop{
   position: fixed;
   top: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(6, 76, 163, 0.5);
   z-index: 999;
   display: none;
@@ -346,10 +346,10 @@ transition: width .7s ease;
 }
 @media (min-width: 768px) {
   .main-container {
-    width: calc(100% - var(--side-nav-width));
+    width: calc(100vw - var(--side-nav-width));
   }
   .main-container.minimized {
-    width: 100%;
+    width: 100vw;
   }
   .side-panel {
     left: 0;

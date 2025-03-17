@@ -157,7 +157,7 @@ function handleSideBarToggleEffect() {
 function handleOnFocusThread(threadId) {
   const currentFocused = chatHistoryRangeContainer.querySelector(".active");
   if(currentFocused) currentFocused.classList.remove("active");
-  if(threadId) document.getElementById(`thread-${threadId}`).classList.add("active");
+  if(threadId != "0") document.getElementById(`thread-${threadId}`).classList.add("active");
 }
 // loads threads from the server api
 // adds the threads to the side panel
@@ -224,6 +224,7 @@ fetch("../api/threads")
           if (focusFirstThread) {
             // set the first thread as the current thread
             sessionStorage.setItem("currentThreadId",thread.id);
+            handleOnFocusThread(thread.id);
             focusFirstThread = false;
           }
       });
