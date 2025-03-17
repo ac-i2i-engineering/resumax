@@ -154,10 +154,16 @@ function handleSideBarToggleEffect() {
   });
 }
 
+function handleOnFocusThread(threadId) {
+  const currentFocused = chatHistoryRangeContainer.querySelector(".active");
+  if(currentFocused) currentFocused.classList.remove("active");
+  if(threadId) document.getElementById(`thread-${threadId}`).classList.add("active");
+}
 // loads threads from the server api
 // adds the threads to the side panel
 // set the first thread as the current thread
 function loadThreads(focusFirstThread=true) {
+
 // fetch the threads from the server
 fetch("../api/threads")
   .then((response) => response.json())
@@ -171,6 +177,8 @@ fetch("../api/threads")
       { days: 365, title: "This year",threads:[]},
       { days: 730, title: "Older",threads:[]},
     ]
+    // store the threads count in the session storage
+    sessionStorage.setItem("threadsCount", data.threads.length);
     // categorize the threads based on when they were created
     const today = new Date();
     dateRanges.forEach((dateRange,index) => {
@@ -194,15 +202,11 @@ fetch("../api/threads")
         dateRangeElement.appendChild(dateRangeTitle);
         chatHistoryRangeContainer.appendChild(dateRangeElement);
         dateRange.threads.forEach((thread) => {
-          if (focusFirstThread) {
-            // set the first thread as the current thread
-            sessionStorage.setItem("currentThreadId",thread.id);
-            focusFirstThread = false;
-          }
           const chatTitleElement = document.createElement("p");
           const deleteThreadBtn = document.createElement("span");
           const icon = document.createElement('i');
           chatTitleElement.classList.add("thread-title");
+          chatTitleElement.setAttribute("id", `thread-${thread.id}`);
           chatTitleElement.textContent = thread.title;
           chatTitleElement.addEventListener("click", ()=>{loadConversations(thread.id)});
           deleteThreadBtn.addEventListener("click", ()=>{deleteThread(thread.id)});
@@ -217,6 +221,11 @@ fetch("../api/threads")
           }
           chatTitleElement.appendChild(deleteThreadBtn);
           dateRangeElement.appendChild(chatTitleElement);
+          if (focusFirstThread) {
+            // set the first thread as the current thread
+            sessionStorage.setItem("currentThreadId",thread.id);
+            focusFirstThread = false;
+          }
       });
       }
     });
@@ -231,8 +240,9 @@ function loadConversations(threadId) {
   if(threadId){
     sessionStorage.setItem("currentThreadId", threadId)}
     else{
-    threadId = sessionStorage.getItem("currentThreadId");
-  }
+      threadId = sessionStorage.getItem("currentThreadId");
+    }
+  handleOnFocusThread(threadId)
   // if the threadId is 0, don't load the conversations
   if (threadId == 0){
     chatBox.innerHTML = "";
@@ -308,6 +318,7 @@ function createThread() {
   sessionStorage.setItem("currentThreadId", 0);
   chatBox.innerHTML = "";
   promptInputForm.classList.add("new-chat");
+  handleOnFocusThread(0);
 }
 
 // delete a thread
@@ -323,7 +334,7 @@ function deleteThread(threadId) {
   .then((response) => {
     if (!response.ok) return;
     if (threadId == sessionStorage.getItem("currentThreadId")) {
-      if(sessionStorage.getItem("threadsCount") == 1){
+      if(sessionStorage.getItem("threadsCount") <= 1){
         sessionStorage.setItem("currentThreadId", 0);
         chatBox.innerHTML = "";
         promptInputForm.classList.add("new-chat")
