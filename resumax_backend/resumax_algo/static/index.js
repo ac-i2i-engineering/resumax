@@ -11,12 +11,15 @@ const closeSidePanelBtn = document.getElementById("close-side-panel-btn");
 const sidePanelBackdrop = document.getElementById("side-panel-backdrop");
 const inputFilesPreviewContainer = document.getElementById("input-files-preview-container");
 const chatHistoryRangeContainer = document.getElementById("chat-history-range-container");
-const csrfToken = getCookie('csrftoken') || document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-// initialize the thread id
-let currentThreadId = 0;
+const MAX_FILENAME_LENGTH = 10;
+const CSRFTOKEN = getCookie('csrftoken') || document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+// initialize the thread id as a session value
+if (!sessionStorage.getItem("currentThreadId")){
+  sessionStorage.setItem("currentThreadId", 0);
+}
 
 document.addEventListener("DOMContentLoaded", (event) => {
-  loadThreads();
+  loadThreads(focusFirstThread=false);
 });
 
 uploadFileBtn.addEventListener("click", () => {attachedFiles.click()});
@@ -38,13 +41,14 @@ function resizeTextarea() {
 // sends the prompt to the server and gets the bot response
 // add the received bot response to the chat box
 function sendPrompt(promptData) {
+  const currentThreadId = sessionStorage.getItem("currentThreadId");
   // add the user message to the chat box
   addUserMessage(promptData.get("prompt-text"), promptData.getAll("prompt-file").map(file => file.name));
   // send the prompt to the server  
   const requestOptions = {
     method: 'POST',
     headers: {
-        'X-CSRFToken': csrfToken,
+        'X-CSRFToken': CSRFTOKEN,
     },
     body:promptData,
     };
@@ -111,7 +115,7 @@ function addInputFieldFilePreview(index) {
   fileIcon.classList.add("bi", "bi-file-earmark-pdf", "file-type-preview-icon");
   fileName.classList.add("file-name");
   removeFileBtn.classList.add("bi", "bi-x", "remove-file-btn");
-  fileName.textContent = attachedFiles.files[index].name;
+  fileName.textContent = formatPreviewFileName(attachedFiles.files[index].name);
   fileIconContainer.appendChild(fileIcon);
   fileIconContainer.appendChild(fileName);
   fileIconContainer.appendChild(removeFileBtn);
@@ -126,7 +130,7 @@ function addConversationFilePreview(name) {
   fileIconContainer.classList.add("file-icon-container");
   fileIcon.classList.add("bi", "bi-file-earmark-pdf", "file-type-preview-icon");
   fileName.classList.add("file-name");
-  fileName.textContent = name;
+  fileName.textContent = formatPreviewFileName(name);
   fileIconContainer.appendChild(fileIcon);
   fileIconContainer.appendChild(fileName);
   return fileIconContainer;
@@ -141,7 +145,7 @@ function deleteInputFile(index) {
 }
 
 function handleSideBarToggleEffect() {
-  document.getElementById("chat-container").classList.toggle("minimized");
+  document.getElementById("main-container").classList.toggle("minimized");
   sidePanel.classList.toggle("active");
   sidePanelBackdrop.classList.toggle("active");
   closeSidePanelBtn.classList.toggle("active");
@@ -151,72 +155,113 @@ function handleSideBarToggleEffect() {
   });
 }
 
+function handleOnFocusThread(threadId) {
+  const currentFocused = chatHistoryRangeContainer.querySelector(".active");
+  if(currentFocused) currentFocused.classList.remove("active");
+  if(threadId != "0") document.getElementById(`thread-${threadId}`).classList.add("active");
+  // hide the side panel if it's active and the device is small
+  if (window.innerWidth < 768 && sidePanel.classList.contains("active")) {
+    handleSideBarToggleEffect();
+  }
+}
 // loads threads from the server api
 // adds the threads to the side panel
 // set the first thread as the current thread
-function loadThreads(focusFirstThread=true, autoLoadConversations=true) {
+function loadThreads(focusFirstThread=true) {
+
 // fetch the threads from the server
 fetch("../api/threads")
   .then((response) => response.json())
   .then((data) => {
     // add the chat history to the side panel
+    const dateRanges = [
+      { days: 1, title: "Today",threads:[]},
+      { days: 2, title: "Yesterday",threads:[]},
+      { days: 7, title: "This week",threads:[]},
+      { days: 30, title: "This month",threads:[]},
+      { days: 365, title: "This year",threads:[]},
+      { days: 730, title: "Older",threads:[]},
+    ]
+    // store the threads count in the session storage
+    sessionStorage.setItem("threadsCount", data.threads.length);
+    // categorize the threads based on when they were created
     const today = new Date();
-    const historyRange = document.querySelector(".thread-container");
-    historyRange.innerHTML = "";
-    data.threads.forEach((thread) => {
-      if (focusFirstThread) {
-        currentThreadId = thread.id;
-        focusFirstThread = false;
+    const boundaries = dateRanges.map(range => today - range.days * 86400000);
+    dateRanges.forEach((dateRange, index) => {
+      const upperBound = boundaries[index];
+      const lowerBound = boundaries[index - 1] || 0;
+      dateRange.threads = data.threads.filter(thread => {
+        const threadTime = new Date(thread.created_at).getTime();
+        return threadTime >= upperBound && (index === 0 || threadTime < lowerBound);
+      });
+    });
+    // add the threads to the side panel
+    chatHistoryRangeContainer.innerHTML = "";
+    dateRanges.forEach((dateRange) => {
+      if (dateRange.threads.length > 0) {
+        const dateRangeElement = document.createElement("div");
+        const dateRangeTitle = document.createElement("h3");
+        dateRangeElement.classList.add("history-range");
+        dateRangeTitle.classList.add("history-range-title");
+        dateRangeTitle.textContent = dateRange.title;
+        dateRangeElement.appendChild(dateRangeTitle);
+        chatHistoryRangeContainer.appendChild(dateRangeElement);
+        dateRange.threads.forEach((thread) => {
+          const chatTitleElement = document.createElement("p");
+          const deleteThreadBtn = document.createElement("span");
+          const icon = document.createElement('i');
+          chatTitleElement.classList.add("thread-title");
+          chatTitleElement.setAttribute("id", `thread-${thread.id}`);
+          chatTitleElement.textContent = thread.title;
+          chatTitleElement.addEventListener("click", ()=>{loadConversations(thread.id)});
+          deleteThreadBtn.addEventListener("click", ()=>{deleteThread(thread.id)});
+          icon.classList.add("bi","bi-trash3-fill");
+          deleteThreadBtn.appendChild(icon);
+          chatTitleElement.innerHTML = thread.title; // Added thread title
+          chatTitleElement.onmouseover = () =>{
+            deleteThreadBtn.style.display = "flex";
+          }
+          chatTitleElement.onmouseout = () =>{
+            deleteThreadBtn.style.display = "none";
+          }
+          chatTitleElement.appendChild(deleteThreadBtn);
+          dateRangeElement.appendChild(chatTitleElement);
+          if (focusFirstThread) {
+            // set the first thread as the current thread
+            sessionStorage.setItem("currentThreadId",thread.id);
+            handleOnFocusThread(thread.id);
+            focusFirstThread = false;
+          }
+      });
       }
-      const threadCreatedAt = new Date(thread.created_at);
-      const timeDiff = today.getTime() - threadCreatedAt.getTime();
-      const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
-      const chatTitleElement = document.createElement("p");
-      const deleteThreadBtn = document.createElement("span");
-      const icon = document.createElement('i');
-      chatTitleElement.classList.add("thread-title");
-      chatTitleElement.textContent = thread.title;
-      chatTitleElement.addEventListener("click", ()=>{loadConversations(thread.id)});
-      deleteThreadBtn.addEventListener("click", ()=>{deleteThread(thread.id)});
-      icon.classList.add("bi","bi-trash3-fill");
-      deleteThreadBtn.appendChild(icon);
-      // You can format the date difference as needed
-      let timeAgo;
-      if (diffDays < 1) {
-        timeAgo = "Today";
-      } else if (diffDays === 1) {
-        timeAgo = "Yesterday";
-      } else {
-        timeAgo = `${diffDays} days ago`;
-      }
-      chatTitleElement.innerHTML = thread.title; // Added thread title
-      chatTitleElement.onmouseover = () =>{
-        deleteThreadBtn.style.display = "flex";
-      }
-      chatTitleElement.onmouseout = () =>{
-        deleteThreadBtn.style.display = "none";
-      }
-      chatTitleElement.appendChild(deleteThreadBtn);
-      historyRange.appendChild(chatTitleElement);
     });
   })
-  .then(() => {
-    if(autoLoadConversations) loadConversations()
-  })
+  .then(() =>loadConversations())
   .catch(error => console.error('Error fetching data:', error));
 }
 // loads the conversation in the thread with certain ID from the server api
 // if no threadId is provided, it loads the currentThreadId(recently created thread)
-function loadConversations(threadId=currentThreadId) {
+function loadConversations(threadId) {
   //change the global variable currentThread to the threadId
-  currentThreadId = threadId;
+  if(threadId){
+    sessionStorage.setItem("currentThreadId", threadId)}
+    else{
+      threadId = sessionStorage.getItem("currentThreadId");
+    }
+  handleOnFocusThread(threadId)
   // if the threadId is 0, don't load the conversations
-  if (threadId == 0) return
+  if (threadId == 0){
+    chatBox.innerHTML = "";
+    promptInputForm.classList.add("new-chat");
+    return;
+  }
   //fetch the conversations from the server
   fetch("../api/threads/"+threadId+"/")
     .then((response) => {
-      if (!response.ok) return;
-      return response.json()
+      if (!response.ok) {
+        throw new Error("couldn't  thread " + response.statusText);
+      }
+      return response.json();
     })
     .then((response) => {
       chatBox.innerHTML = "";
@@ -248,12 +293,15 @@ function addUserMessage(message, attachedFiles=null) {
   const messageElement = document.createElement("div");
   const textBox = document.createElement("div");
   messageElement.classList.add("message", "user-message");
+  // remove the new-chat class from the promptInputForm
+  promptInputForm.classList.remove("new-chat");
   //if the are attached files, add them to the message
-  if(attachedFiles != null && attachedFiles[0] != ''){
+if(attachedFiles != null && attachedFiles.length > 0 && attachedFiles[0] != ''){
     const filesPreviewContainer = document.createElement("div");
     filesPreviewContainer.classList.add("files-preview-container");
-    attachedFiles.forEach((file) => {
-      filesPreviewContainer.appendChild(addConversationFilePreview(file));
+    attachedFiles.forEach((fileName) => {
+      fileName = formatPreviewFileName(fileName);
+      filesPreviewContainer.appendChild(addConversationFilePreview(fileName));
     });
     messageElement.appendChild(filesPreviewContainer);
   }
@@ -275,32 +323,41 @@ function addBotMessage(message) {
 // create a new thread
 function createThread() {
   // set the current thread to 0
-  currentThreadId = 0;
+  sessionStorage.setItem("currentThreadId", 0);
   chatBox.innerHTML = "";
+  promptInputForm.classList.add("new-chat");
+  handleOnFocusThread(0);
 }
 
 // delete a thread
 function deleteThread(threadId) {
-  /* temporarily set the currentThreadId to 0 to avoid errors if 
-  no other threads to load after deleting the current thread
-  */
-  currentThreadId = 0;
   // delete the thread from the server and reload the threads
   const requestOptions = {
     method: 'DELETE',
     headers: {
-        'X-CSRFToken': csrfToken,
+        'X-CSRFToken': CSRFTOKEN,
     },
     };
   fetch("../api/threads/"+threadId+"/delete/", requestOptions)
   .then((response) => {
-    if (!response.ok) return;
-    return response.json()
+    if (!response.ok) {
+      throw new Error('Failed to delete thread: ' + response.statusText);
+    }
+    if (threadId == sessionStorage.getItem("currentThreadId")) {
+      if(sessionStorage.getItem("threadsCount") <= 1){
+        sessionStorage.setItem("currentThreadId", 0);
+        chatBox.innerHTML = "";
+        promptInputForm.classList.add("new-chat")
+      }
+      loadThreads()
+     }
   })
-  .then(() => loadThreads())
   .catch((error) => console.error("Error fetching data:", error));
 }
-// TODO: make the initial thread on load doc to be zero
-// TODO: limit the length of a file name preview
-// TODO: Enable thread categorization based on when they were created
+
+function formatPreviewFileName(fileName) {
+  if (fileName.length <= MAX_FILENAME_LENGTH) return fileName;
+  const [name, ext] = fileName.split(".");
+  return `${name.substring(0, MAX_FILENAME_LENGTH)}...${ext ? '.' + ext : ''}`;
+}
 // TODO: look for pretty UI/UX
