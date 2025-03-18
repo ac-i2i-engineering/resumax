@@ -11,9 +11,10 @@ body {
   margin: 0;
   padding: 0;
   display: flex;
-  height: 100vh;
   overflow: hidden;
   box-sizing: border-box;
+  inset: 0; /* shorthand for top, bottom, left, and right set to 0 */
+  position: absolute;
 }
 
 .top-navbar {
@@ -54,7 +55,7 @@ body {
 }
 .side-panel {
   width: var(--side-nav-width);
-  height: 100vh;
+  height: 100%;
   background-color: #333;
   color: #fff;
   position: fixed;
@@ -160,7 +161,7 @@ body {
 .main-container {
   width: 100%;
   margin-top: 4.75rem;
-  height: calc(100vh - 4.75rem);
+  height: calc(100% - 4.75rem);
   background-color: #fff;
   display: flex;
   flex-direction: column;

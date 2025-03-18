@@ -158,6 +158,10 @@ function handleOnFocusThread(threadId) {
   const currentFocused = chatHistoryRangeContainer.querySelector(".active");
   if(currentFocused) currentFocused.classList.remove("active");
   if(threadId != "0") document.getElementById(`thread-${threadId}`).classList.add("active");
+  // hide the side panel if it's active and the device is small
+  if (window.innerWidth < 768 && sidePanel.classList.contains("active")) {
+    handleSideBarToggleEffect();
+  }
 }
 // loads threads from the server api
 // adds the threads to the side panel
