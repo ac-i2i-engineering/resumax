@@ -11,7 +11,8 @@ const closeSidePanelBtn = document.getElementById("close-side-panel-btn");
 const sidePanelBackdrop = document.getElementById("side-panel-backdrop");
 const inputFilesPreviewContainer = document.getElementById("input-files-preview-container");
 const chatHistoryRangeContainer = document.getElementById("chat-history-range-container");
-const csrfToken = getCookie('csrftoken') || document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+const MAX_FILENAME_LENGTH = 10;
+const CSRFTOKEN = getCookie('csrftoken') || document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 // initialize the thread id as a session value
 if (!sessionStorage.getItem("currentThreadId")){
   sessionStorage.setItem("currentThreadId", 0);
@@ -47,7 +48,7 @@ function sendPrompt(promptData) {
   const requestOptions = {
     method: 'POST',
     headers: {
-        'X-CSRFToken': csrfToken,
+        'X-CSRFToken': CSRFTOKEN,
     },
     body:promptData,
     };
@@ -185,13 +186,13 @@ fetch("../api/threads")
     sessionStorage.setItem("threadsCount", data.threads.length);
     // categorize the threads based on when they were created
     const today = new Date();
-    dateRanges.forEach((dateRange,index) => {
-      dateRange.threads = 
-      data.threads.filter((thread) => {
-        const threadDate = new Date(thread.created_at);
-        const dateDiff = (today - threadDate) / (1000 * 3600 * 24);
-        if(index == 0) return dateDiff <= dateRange.days;
-        return dateDiff <= dateRange.days && dateDiff > dateRanges[index-1].days;
+    const boundaries = dateRanges.map(range => today - range.days * 86400000);
+    dateRanges.forEach((dateRange, index) => {
+      const upperBound = boundaries[index];
+      const lowerBound = boundaries[index - 1] || 0;
+      dateRange.threads = data.threads.filter(thread => {
+        const threadTime = new Date(thread.created_at).getTime();
+        return threadTime >= upperBound && (index === 0 || threadTime < lowerBound);
       });
     });
     // add the threads to the side panel
@@ -257,8 +258,10 @@ function loadConversations(threadId) {
   //fetch the conversations from the server
   fetch("../api/threads/"+threadId+"/")
     .then((response) => {
-      if (!response.ok) return;
-      return response.json()
+      if (!response.ok) {
+        throw new Error("couldn't  thread " + response.statusText);
+      }
+      return response.json();
     })
     .then((response) => {
       chatBox.innerHTML = "";
@@ -332,12 +335,14 @@ function deleteThread(threadId) {
   const requestOptions = {
     method: 'DELETE',
     headers: {
-        'X-CSRFToken': csrfToken,
+        'X-CSRFToken': CSRFTOKEN,
     },
     };
   fetch("../api/threads/"+threadId+"/delete/", requestOptions)
   .then((response) => {
-    if (!response.ok) return;
+    if (!response.ok) {
+      throw new Error('Failed to delete thread: ' + response.statusText);
+    }
     if (threadId == sessionStorage.getItem("currentThreadId")) {
       if(sessionStorage.getItem("threadsCount") <= 1){
         sessionStorage.setItem("currentThreadId", 0);
@@ -350,11 +355,9 @@ function deleteThread(threadId) {
   .catch((error) => console.error("Error fetching data:", error));
 }
 
-function formatPreviewFileName(fileName){
-  if(fileName.length <= 10) return fileName;
-  const ext = fileName.split(".")[1];
-  const name = fileName.split(".")[0];
-  const formattedName = name.substring(0, 10) + "...";
-  return formattedName + "." + ext;
+function formatPreviewFileName(fileName) {
+  if (fileName.length <= MAX_FILENAME_LENGTH) return fileName;
+  const [name, ext] = fileName.split(".");
+  return `${name.substring(0, MAX_FILENAME_LENGTH)}...${ext ? '.' + ext : ''}`;
 }
 // TODO: look for pretty UI/UX
