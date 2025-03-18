@@ -1,13 +1,33 @@
 :root{
   --side-nav-width: 20rem;
   --side-nav-width-neg: -20rem;
-  --app-blue-1:rgb(0, 50, 97);
   --app-shadow-1: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --blue-seed:#1a2a6c;
+  --blue-900:#0f183e;
+  --blue-800:#192867;
+  --blue-700:#233890;
+  --blue-600: #2d48b9;
+  --blue-500: #4661d2;
+  --blue-400: #6f84dc;
+  --blue-300: #98a7e6;
+  --blue-200: #c1caf0;
+  --blue-100: #eaedfa;
+  --black: #000;
+  --gray-50: #f9f9f9;
+  --gray-100: #ececec;
+  --gray-200: #e3e3e3;
+  --gray-300: #cdcdcd;
+  --gray-400: #b4b4b4;
+  --gray-500: #9b9b9b;
+  --gray-600: #676767;
+  --gray-700: #424242;
+  --gray-750: #2f2f2f;
+  --gray-800: #212121;
+  --gray-900: #171717;
 }
 body {
   font-family: Arial, sans-serif;
   background-color: #f9f9f9;
-  color: #333;
   margin: 0;
   padding: 0;
   display: flex;
@@ -30,11 +50,11 @@ body {
   visibility:visible;
 }
 .top-navbar-body{
-  background-color: var(--app-blue-1);
+  background-color: var(--blue-seed);
   color: #fff;
   display: flex;
   align-items: center;
-  padding: .25rem;
+  padding: .25rem .5rem;
   justify-content: space-between;
   text-align: center;
 
@@ -46,6 +66,7 @@ body {
   font-size: 1.5rem;
   cursor: pointer;
   display: none;
+  padding: 0;
 }
 .side-panel-toggler-btn.active{
   display: block !important;
@@ -56,12 +77,12 @@ body {
 .side-panel {
   width: var(--side-nav-width);
   height: 100%;
-  background-color: #333;
+  background-color: var(--gray-750);
   color: #fff;
   position: fixed;
   top: 0;
   left: var(--side-nav-width-neg);
-  transition: left .7s ease;
+  transition: left .7s ease-in-out;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -73,7 +94,7 @@ body {
   left: 0;
 }
 .side-panel-header{
-  background-color: var(--app-blue-1);
+  background-color: var(--blue-seed);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -134,11 +155,11 @@ body {
   border-radius: 0.25rem;
 }
 .thread-title.active{
-  background-color: #444;
+  background-color: var(--gray-700);
 
 }
 .thread-title:hover,#create-thread-btn:hover{
-  background-color: #3b4045;
+  background-color: var(--gray-800);
   cursor: pointer;
 }
 .thread-title span{
@@ -148,8 +169,7 @@ body {
   bottom: 0;
   display: none;
   padding: 0 .25rem;
-  background-color: #43494e;
-  box-shadow: -7px -1px 7px 3px #43494e;
+  background-color: var(--gray-950);
   opacity: 0.5;
 }
 .thread-title span i{
@@ -167,20 +187,9 @@ body {
   flex-direction: column;
   align-items: center;
   margin-left: auto;
-  transition: width .7s ease;
+  transition: width .7s ease-in-out;
   position: relative;
 }
-
-.chat-header {
-  background-color: rgb(0, 50, 97);
-  color: #fff;
-  padding: 10px;
-  text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
 .chat-box {
   flex: 1;
   overflow-y: auto;
@@ -201,29 +210,17 @@ body {
 }
 
 .user-message {
-  background-color: #007bff;
+  background-color: var(--blue-500);
   color: #fff;
   align-self: flex-end;
   text-align: right;
 }
 
 .bot-message {
-  background-color: #6c757d;
+  background-color: var(--gray-600);
   color: #fff;
   align-self: flex-start;
   text-align: left;
-}
-
-.file-message {
-  background-color: #74be71;
-  color: #fff;
-  align-self: flex-end;
-  text-align: right;
-  padding: 10px;
-  border-radius: 20px;
-  margin-bottom: 10px;
-  max-width: 80%;
-  word-wrap: break-word;
 }
 .text-box{
   padding: 0;
@@ -258,7 +255,7 @@ transition: width .7s ease;
 }
 
 .logout-btn:hover {
-  background-color: #007bff;
+  background-color: var(--blue-700);
 }
 #chat-input-text {
   width: 100%;
@@ -274,7 +271,7 @@ transition: width .7s ease;
 #send-btn,
 #upload-file-btn {
   border: none;
-  color: var(--app-blue-1);
+  color: var(--blue-950);
   border-radius: 4px;
   cursor: pointer;
   align-self: end;
@@ -315,17 +312,21 @@ transition: width .7s ease;
 .user-message .files-preview-container{
   margin-bottom: .5rem;
 }
+.user-message .file-icon-container{
+  background-color: var(--blue-400);
+}
 .file-icon-container{
   position: relative;
-  background-color: #b0b0b0; 
+  background-color: var(--gray-400); 
   justify-self: start;
   border-radius: .5rem;
   padding: .25rem;
   display: flex;
+  box-shadow: 1px 2px 6px 0px #0000002e;
 }
 .remove-file-btn{
   position: absolute;
-  background-color: var(--app-blue-1);
+  background-color: var(--gray-700);
   color: white;
   border-radius: 100%;
   top: -5px;
@@ -334,7 +335,7 @@ transition: width .7s ease;
   padding: 1px 2px;
   margin: 0;
 }
-@media (max-width: 768px){
+@media (max-width: 767px){
 #side-panel-backdrop{
   position: fixed;
   top: 0;
@@ -347,6 +348,7 @@ transition: width .7s ease;
 }
 @media (min-width: 768px) {
   .main-container {
+    transition: width .7s ease-in-out;
     width: calc(100vw - var(--side-nav-width));
   }
   .main-container.minimized {
