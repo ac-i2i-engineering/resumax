@@ -268,7 +268,7 @@
 
       <!-- TODO: check support for multiple files at once -->
       <form id="chat-form" method="POST" enctype="multipart/form-data">
-        <!-- {% csrf_token %} --> 
+        {% csrf_token %}
         <input
           type="file"
           name="file"
@@ -330,34 +330,46 @@
           }
         });
 
+      function createMessageElement(content, type, isUserMessage = true) {
+        // Create wrapper
+        const wrapperElement = document.createElement("div");
+        const wrapperClass = isUserMessage ? `${type}-message-wrapper` : "other-message-wrapper";
+        wrapperElement.classList.add("message-wrapper", wrapperClass);
+        
+        // Create message bubble
+        const messageElement = document.createElement("div");
+        const messageClass = isUserMessage ? `${type}-message` : "other-message";
+        messageElement.classList.add("message", messageClass);
+        
+        // Create content element
+        const contentElement = document.createElement("div");
+        contentElement.textContent = content;
+        messageElement.appendChild(contentElement);
+        
+        // Create avatar element
+        const avatarElement = document.createElement("div");
+        avatarElement.classList.add("message-avatar");
+        
+        // Add elements in right order based on message type
+        if (isUserMessage) {
+          wrapperElement.appendChild(messageElement);
+          wrapperElement.appendChild(avatarElement);
+        } else {
+          wrapperElement.appendChild(avatarElement);
+          wrapperElement.appendChild(messageElement);
+        }
+        
+        return wrapperElement;
+      }
+
       function sendMessage() {
         const chatBox = document.getElementById("chat-box");
         const chatInput = document.getElementById("chat-input");
         const message = chatInput.value.trim();
 
         if (message) {
-          // Create wrapper
-          const wrapperElement = document.createElement("div");
-          wrapperElement.classList.add("message-wrapper", "user-message-wrapper");
-          
-          // Create message bubble
-          const messageElement = document.createElement("div");
-          messageElement.classList.add("message", "user-message");
-          
-          // Create content element
-          const contentElement = document.createElement("div");
-          contentElement.textContent = message;
-          messageElement.appendChild(contentElement);
-          
-          // Create avatar element
-          const avatarElement = document.createElement("div");
-          avatarElement.classList.add("message-avatar");
-          
-          // Add message first, then avatar (for user messages)
-          wrapperElement.appendChild(messageElement);
-          wrapperElement.appendChild(avatarElement);
-          
-          chatBox.appendChild(wrapperElement);
+          const messageElement = createMessageElement(message, "user", true);
+          chatBox.appendChild(messageElement);
           chatInput.value = "";
           chatBox.scrollTop = chatBox.scrollHeight;
           saveMessage({ type: "text", content: message });
@@ -369,30 +381,11 @@
         const fileName = document.getElementById("file-name").textContent;
 
         if (fileName != "") {
-          // Create wrapper
-          const wrapperElement = document.createElement("div");
-          wrapperElement.classList.add("message-wrapper", "file-message-wrapper");
-          
-          // Create message bubble
-          const fileElement = document.createElement("div");
-          fileElement.classList.add("message", "file-message");
-          
-          // Create content element
-          const contentElement = document.createElement("div");
-          contentElement.textContent = `File uploaded: ${fileName}`;
-          fileElement.appendChild(contentElement);
-          
-          // Create avatar element
-          const avatarElement = document.createElement("div");
-          avatarElement.classList.add("message-avatar");
-          
-          // Add message first, then avatar (for file messages)
-          wrapperElement.appendChild(fileElement);
-          wrapperElement.appendChild(avatarElement);
-          
-          chatBox.appendChild(wrapperElement);
+          const content = `File uploaded: ${fileName}`;
+          const fileElement = createMessageElement(content, "file", true);
+          chatBox.appendChild(fileElement);
           chatBox.scrollTop = chatBox.scrollHeight;
-          saveMessage({ type: "file", content: `File uploaded: ${fileName}` });
+          saveMessage({ type: "file", content: content });
           document.getElementById("file-icon-container").style.display = "none";
           document.getElementById("file-name").textContent = "";
         }
@@ -401,42 +394,14 @@
       function loadMessages() {
         const messages = JSON.parse(localStorage.getItem("messages")) || [];
         const chatBox = document.getElementById("chat-box");
+        
         messages.forEach((message) => {
-          // Create wrapper
-          const wrapperElement = document.createElement("div");
-          const isUserMessage = message.type === "text";
-          wrapperElement.classList.add(
-            "message-wrapper", 
-            isUserMessage ? "user-message-wrapper" : "file-message-wrapper"
-          );
-          
-          // Create message bubble
-          const messageElement = document.createElement("div");
-          messageElement.classList.add(
-            "message",
-            isUserMessage ? "user-message" : "file-message"
-          );
-          
-          // Create content element
-          const contentElement = document.createElement("div");
-          contentElement.textContent = message.content;
-          messageElement.appendChild(contentElement);
-          
-          // Create avatar element
-          const avatarElement = document.createElement("div");
-          avatarElement.classList.add("message-avatar");
-          
-          // Add elements in right order based on message type
-          if (isUserMessage || message.type === "file") {
-            wrapperElement.appendChild(messageElement);
-            wrapperElement.appendChild(avatarElement);
-          } else {
-            wrapperElement.appendChild(avatarElement);
-            wrapperElement.appendChild(messageElement);
-          }
-          
-          chatBox.appendChild(wrapperElement);
+          const isUserMessage = message.type === "text" || message.type === "file";
+          const type = message.type === "text" ? "user" : message.type;
+          const messageElement = createMessageElement(message.content, type, isUserMessage);
+          chatBox.appendChild(messageElement);
         });
+        
         chatBox.scrollTop = chatBox.scrollHeight;
       }
     </script>
