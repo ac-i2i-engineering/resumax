@@ -65,64 +65,82 @@
         position: relative;
         animation: fadeIn 0.3s ease;
         box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        display: flex;
-        align-items: center;
+        /* Remove display: flex from here since we want avatar outside */
       }
-    
+
+      /* Create a wrapper for message with avatar */
+      .message-wrapper {
+        display: flex;
+        align-items: flex-end; /* Changed from flex-start to flex-end to align at bottom */
+        margin-bottom: 15px;
+        width: 100%;
+      }
+
+      .user-message-wrapper {
+        justify-content: flex-end;
+      }
+
+      .other-message-wrapper {
+        justify-content: flex-start;
+      }
+
       .message-avatar {
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         background-size: cover;
         background-position: center;
-        margin-right: 8px;
         flex-shrink: 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        position: relative;
+        /* Move up by radius (16px, which is half the height) */
+        transform: translateY(-16px);
+        /* Remove bottom property since we're using transform */
       }
-    
+
       .user-message {
         background: linear-gradient(135deg, #1a73e8 0%, #0d62c9 100%);
         color: #fff;
-        align-self: flex-end;
         text-align: left;
-        margin-left: auto;
         border-bottom-right-radius: 4px;
+        /* Remove alignment properties from here */
       }
       
-      .user-message .message-avatar {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E");
-        margin-right: 0;
-        margin-left: 8px;
-        order: 2;
+      .user-message-wrapper .message-avatar {
+        background-color: #1a73e8; /* Add blue background color */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E");
+        margin-left: 8px; /* Spacing between avatar and message */
       }
     
       .other-message {
         background: linear-gradient(135deg, #f5f5f5 0%, #e9e9e9 100%);
         color: #333;
-        align-self: flex-start;
         text-align: left;
-        margin-right: auto;
         border-bottom-left-radius: 4px;
+        /* Remove alignment properties from here */
       }
       
-      .other-message .message-avatar {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E");
+      .other-message-wrapper .message-avatar {
+        background-color: #757575; /* Add dark gray background color */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E");
+        margin-right: 8px; /* Spacing between avatar and message */
       }
     
       .file-message {
         background: linear-gradient(135deg, #43a047 0%, #388e3c 100%);
         color: #fff;
-        align-self: flex-end;
-        margin-left: auto;
         border-bottom-right-radius: 4px;
-        display: flex;
-        align-items: center;
+        /* Remove alignment properties from here */
       }
     
-      .file-message .message-avatar {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E");
-        margin-right: 0;
-        margin-left: 8px;
-        order: 2;
+      .file-message-wrapper {
+        justify-content: flex-end;
+      }
+
+      .file-message-wrapper .message-avatar {
+        background-color: #43a047; /* Add green background color */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zm-4.6 10h7.1c.59 0 .59-1 0-1h-7.1c-.59 0-.59 1 0 1zm0-4h7.1c.59 0 .59-1 0-1h-7.1c-.59 0-.59 1 0 1z'/%3E%3C/svg%3E");
+        margin-left: 8px; /* Spacing between avatar and message */
       }
     
       @keyframes fadeIn {
@@ -207,15 +225,25 @@
     </div>
     <div class="chat-box" id="chat-box">
       <!-- Dummy messages -->
-      <div class="message other-message">
-        Hello! How can I help you today?
+      <div class="message-wrapper other-message-wrapper">
+        <div class="message-avatar"></div>
+        <div class="message other-message">
+          <div>Hello! How can I help you today?</div>
+        </div>
       </div>
-      <div class="message user-message">
-        Hi! I need some help with my resume.
+      
+      <div class="message-wrapper user-message-wrapper">
+        <div class="message user-message">
+          <div>Hi! I need some help with my resume.</div>
+        </div>
+        <div class="message-avatar"></div>
       </div>
-      <div class="message other-message">
-        Sure, please upload a copy of your resume and I'd be happy to take a
-        look at it!
+      
+      <div class="message-wrapper other-message-wrapper">
+        <div class="message-avatar"></div>
+        <div class="message other-message">
+          <div>Sure, please upload a copy of your resume and I'd be happy to take a look at it!</div>
+        </div>
       </div>
     </div>
 
@@ -308,10 +336,28 @@
         const message = chatInput.value.trim();
 
         if (message) {
+          // Create wrapper
+          const wrapperElement = document.createElement("div");
+          wrapperElement.classList.add("message-wrapper", "user-message-wrapper");
+          
+          // Create message bubble
           const messageElement = document.createElement("div");
           messageElement.classList.add("message", "user-message");
-          messageElement.textContent = message;
-          chatBox.appendChild(messageElement);
+          
+          // Create content element
+          const contentElement = document.createElement("div");
+          contentElement.textContent = message;
+          messageElement.appendChild(contentElement);
+          
+          // Create avatar element
+          const avatarElement = document.createElement("div");
+          avatarElement.classList.add("message-avatar");
+          
+          // Add message first, then avatar (for user messages)
+          wrapperElement.appendChild(messageElement);
+          wrapperElement.appendChild(avatarElement);
+          
+          chatBox.appendChild(wrapperElement);
           chatInput.value = "";
           chatBox.scrollTop = chatBox.scrollHeight;
           saveMessage({ type: "text", content: message });
@@ -320,40 +366,78 @@
 
       function uploadFile() {
         const chatBox = document.getElementById("chat-box");
-        //const file = event.target.files[0];
         const fileName = document.getElementById("file-name").textContent;
 
         if (fileName != "") {
+          // Create wrapper
+          const wrapperElement = document.createElement("div");
+          wrapperElement.classList.add("message-wrapper", "file-message-wrapper");
+          
+          // Create message bubble
           const fileElement = document.createElement("div");
           fileElement.classList.add("message", "file-message");
-          fileElement.textContent = `File uploaded: ${fileName}`;
-          chatBox.appendChild(fileElement);
+          
+          // Create content element
+          const contentElement = document.createElement("div");
+          contentElement.textContent = `File uploaded: ${fileName}`;
+          fileElement.appendChild(contentElement);
+          
+          // Create avatar element
+          const avatarElement = document.createElement("div");
+          avatarElement.classList.add("message-avatar");
+          
+          // Add message first, then avatar (for file messages)
+          wrapperElement.appendChild(fileElement);
+          wrapperElement.appendChild(avatarElement);
+          
+          chatBox.appendChild(wrapperElement);
           chatBox.scrollTop = chatBox.scrollHeight;
-          saveMessage({ type: "file", content: fileElement.textContent });
+          saveMessage({ type: "file", content: `File uploaded: ${fileName}` });
           document.getElementById("file-icon-container").style.display = "none";
           document.getElementById("file-name").textContent = "";
         }
-      }
-
-      function saveMessage(message) {
-        let messages = JSON.parse(localStorage.getItem("messages")) || [];
-        messages.push(message);
-        localStorage.setItem("messages", JSON.stringify(messages));
       }
 
       function loadMessages() {
         const messages = JSON.parse(localStorage.getItem("messages")) || [];
         const chatBox = document.getElementById("chat-box");
         messages.forEach((message) => {
+          // Create wrapper
+          const wrapperElement = document.createElement("div");
+          const isUserMessage = message.type === "text";
+          wrapperElement.classList.add(
+            "message-wrapper", 
+            isUserMessage ? "user-message-wrapper" : "file-message-wrapper"
+          );
+          
+          // Create message bubble
           const messageElement = document.createElement("div");
           messageElement.classList.add(
             "message",
-            message.type === "text" ? "user-message" : "file-message"
+            isUserMessage ? "user-message" : "file-message"
           );
-          messageElement.textContent = message.content;
-          chatBox.appendChild(messageElement);
+          
+          // Create content element
+          const contentElement = document.createElement("div");
+          contentElement.textContent = message.content;
+          messageElement.appendChild(contentElement);
+          
+          // Create avatar element
+          const avatarElement = document.createElement("div");
+          avatarElement.classList.add("message-avatar");
+          
+          // Add elements in right order based on message type
+          if (isUserMessage || message.type === "file") {
+            wrapperElement.appendChild(messageElement);
+            wrapperElement.appendChild(avatarElement);
+          } else {
+            wrapperElement.appendChild(avatarElement);
+            wrapperElement.appendChild(messageElement);
+          }
+          
+          chatBox.appendChild(wrapperElement);
         });
-        chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom after loading messages
+        chatBox.scrollTop = chatBox.scrollHeight;
       }
     </script>
   </body>
