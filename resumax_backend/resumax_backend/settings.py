@@ -8,7 +8,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 from pathlib import Path
 from dotenv import load_dotenv
+import os
 load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
@@ -93,8 +95,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 STATIC_URL = '/static/'
 
-import os
-
 # Add STATICFILES_DIRS setting
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "resumax_auth/static"),
@@ -114,3 +114,4 @@ LOGIN_URL = 'login'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+HUGGINGFACE_TOKEN = os.getenv('HUGGINGFACE_TOKEN')

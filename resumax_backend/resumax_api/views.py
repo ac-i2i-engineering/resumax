@@ -4,11 +4,13 @@ from rest_framework.parsers import MultiPartParser
 from resumax_algo.models import AttachedFile, ConversationsThread, Conversation
 from rest_framework.decorators import api_view,parser_classes
 from rest_framework.response import Response
-from resumax_algo.aiModel import generateContent
+from resumax_algo.gemini_model import generate_response
 from .serializers import AttachedFileSerializer, ConversationSerializer, ConversationsThreadSerializer
 from django.core.files.storage import FileSystemStorage
+from resumax_algo import retriever
 import asyncio
 
+USE_RETRIEVER = True
 # Create your views here.
 @login_required
 @api_view(['GET', 'POST'])
@@ -44,7 +46,10 @@ def conversations(request, thread_id):
         if not promptAttachedFiles:
             # Generate response
             try:
-                response = asyncio.run(generateContent(promptText))
+                if USE_RETRIEVER:
+                    response = retriever.generate_response(promptText)
+                else:
+                    response = asyncio.run(generate_response(promptText))
             except Exception as e:
                 return Response({"error": str(e)}, status=500)
             # Save conversation to the database
@@ -73,7 +78,7 @@ def conversations(request, thread_id):
         # Generate response
         try:
             # Generate response considering attached files
-            response = asyncio.run(generateContent(promptText, uploaded_file_urls)) 
+            response = asyncio.run(generate_response(promptText, uploaded_file_urls)) 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
         # Save conversation to the database
@@ -143,3 +148,14 @@ def validate_file(file):
 def secure_filename(filename):
     return filename.replace(" ", "_")
 # TODO: add a functionality to vectorize all the messages in the same thread and send them with the prompt to the server
+
+@api_view(['GET'])
+def test(request):
+    if request.method == 'GET':
+        promptText = request.query_params.get("prompt")
+        try:
+            response = retriever.generate_response(promptText)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+        return Response({"response": response})
+    return Response({"error": "Invalid request"}, status=400)

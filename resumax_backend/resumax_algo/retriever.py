@@ -1,72 +1,75 @@
 from huggingface_hub import login
 from langchain_huggingface import HuggingFacePipeline
-from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig, pipeline, BitsAndBytesConfig, AutoConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig, pipeline, BitsAndBytesConfig
 import torch
 from textwrap import fill
 from langchain.prompts import PromptTemplate
 import locale
-from langchain_community.vectorstores.utils import filter_complex_metadata
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
-
-from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
-
+import logging
+import os
 locale.getpreferredencoding = lambda: "UTF-8"
 
 # from huggingface_hub import login
-from django.conf import settings
-# login(settings.HUGGINGFACE_API_KEY)
-login("api_key")
-
-import os
-import logging
+from resumax_backend.settings import BASE_DIR,HUGGINGFACE_TOKEN, DEBUG
+login(HUGGINGFACE_TOKEN)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-if __name__ == '__main__':
-    # Specify the directory where the FAISS index and metadata are saved
-    save_directory = "vectordb"
+# Configuration
+VECTOR_STORE_PATH = os.path.join(BASE_DIR, "vectordb")
+EMBEDDING_MODEL_NAME = "sentence-transformers/all-mpnet-base-v2"
+LLM_MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+SCORE_THRESHOLD = 0.2
 
-    embedding_model_name = "sentence-transformers/all-mpnet-base-v2"
-    # Check if CUDA is available
-    if torch.cuda.is_available():
-        model_kwargs = {"device": "cuda"}
-    else:
-        model_kwargs = {"device": "cpu"}
-        print("CUDA not available, using CPU instead.")
-    embeddings = HuggingFaceEmbeddings(
+
+def load_embeddings(embedding_model_name=EMBEDDING_MODEL_NAME, device=DEVICE):
+    """Loads HuggingFace embeddings."""
+    model_kwargs = {"device": device}
+    if DEBUG:
+        logging.info(f"Using device: {device}")
+    return HuggingFaceEmbeddings(
         model_name=embedding_model_name,
         model_kwargs=model_kwargs,
         multi_process=False,
     )
 
-    # Load the FAISS index from the specified directory
-    vector_store = FAISS.load_local(save_directory, embeddings,allow_dangerous_deserialization=True)
 
-    # cell 6
-    # Define the model
-    model_name = "meta-llama/Llama-3.2-1B-Instruct"
+def load_vector_store(save_directory, embeddings):
+    """Loads FAISS vector store from local directory."""
+    try:
+        vector_store = FAISS.load_local(save_directory, embeddings, allow_dangerous_deserialization=True)
+        if DEBUG:
+            logging.info(f"Successfully loaded vector store from {save_directory}")
+        return vector_store
+    except Exception as e:
+        logging.error(f"Error loading vector store: {e}")
+        return None
 
-    # Determine device and quantization configuration based on CUDA availability
-    if torch.cuda.is_available():
-        device = "cuda"
+
+def load_llm(model_name=LLM_MODEL_NAME, device=DEVICE):
+    """Loads language model and tokenizer."""
+    if device == "cuda":
         quantization_config = BitsAndBytesConfig()
         model = AutoModelForCausalLM.from_pretrained(model_name,
-                                                 device_map=device,
-                                                 quantization_config=quantization_config,
-                                                 trust_remote_code=True)
+                                                     device_map=device,
+                                                     quantization_config=quantization_config,
+                                                     trust_remote_code=True)
     else:
-        device = "cpu"
-        # Remove quantization_config and use cpu
         model = AutoModelForCausalLM.from_pretrained(
             model_name,
             trust_remote_code=True,
-        )  # Move the model to the device
-
+        )
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
+    return model, tokenizer
 
-    gen_cfg = GenerationConfig.from_pretrained(model_name)
+
+def create_pipeline(model, tokenizer, device=DEVICE):
+    """Creates text generation pipeline."""
+    gen_cfg = GenerationConfig.from_pretrained(LLM_MODEL_NAME)
     gen_cfg.max_new_tokens = 512
     gen_cfg.temperature = 0.0000001
     gen_cfg.return_full_text = True
@@ -78,13 +81,13 @@ if __name__ == '__main__':
         model=model,
         tokenizer=tokenizer,
         generation_config=gen_cfg,
-        device=device # Ensure pipeline uses the correct device
+        device=device  # Ensure pipeline uses the correct device
     )
+    return HuggingFacePipeline(pipeline=pipe)
 
-    llm = HuggingFacePipeline(pipeline=pipe)
 
-    # cell 7
-    # Define the prompt template
+def create_prompt_template():
+    """Creates prompt template for resume review."""
     prompt_template_llama3 = """
     <|begin_of_text|><|start_header_id|>system<|end_header_id|>
 
@@ -107,30 +110,45 @@ if __name__ == '__main__':
 
     {question}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
     """
+    return PromptTemplate(template=prompt_template_llama3, input_variables=["context", "question"])
 
-    prompt = PromptTemplate(template=prompt_template_llama3, input_variables=["context", "question"])
 
-    # cell 8
-    # Define the retrieval QA chain
-    Chain_pdf = RetrievalQA.from_chain_type(
+def create_retrieval_qa_chain(llm, vector_store, prompt, score_threshold=SCORE_THRESHOLD):
+    """Creates retrieval QA chain."""
+    return RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
-        retriever=vector_store.as_retriever(search_type="similarity_score_threshold", search_kwargs={'k': 10, 'score_threshold': 0.2}),
+        retriever=vector_store.as_retriever(search_type="similarity_score_threshold",
+                                            search_kwargs={'k': 10, 'score_threshold': score_threshold}),
         chain_type_kwargs={"prompt": prompt},
     )
 
-    query = """just in direct words, out of 100%, how good is this. you explain why?
 
-    Work Experience:
-    Software Engineering Intern | Google | Summer 2024
-    - Developed and optimized backend services for a large-scale distributed system, improving performance by 20%.
-    - Led a team of three interns in implementing a feature that reduced data retrieval time by 30%.
+def generate_content(qa_chain, query):
+    """Generates content based on the query."""
+    try:
+        result = qa_chain.invoke(query)
+        clean_result = result['result'].split("<|eot_id|><|start_header_id|>assistant<|end_header_id|>")[-1].strip()
+        return clean_result
+    except Exception as e:
+        logging.warning("No relevant docs were retrieved using the relevance score threshold.")
+        return "I'm sorry, but I am not trained for that kind of task. Please try a different query."
 
-    Teaching Assistant | Amherst College | Fall 2023 - Present
-    - Led weekly discussions and mentored students in algorithms and data structures.
-    - Created practice problems that improved students’ understanding of computational complexity.
-    """
-    result = Chain_pdf.invoke(query)
-    # Strip out any template artifacts from the result
-    clean_result = result['result'].split("<|eot_id|><|start_header_id|>assistant<|end_header_id|>")[-1].strip()
-    print(fill(clean_result, width=200))
+
+def generate_response(query):
+    # Load resources
+    embeddings = load_embeddings()
+    vector_store = load_vector_store(VECTOR_STORE_PATH, embeddings)
+
+    if vector_store is None:
+        logging.error("Failed to load vector store. Exiting.")
+        return "Failed to load vector store."
+    else:
+        model, tokenizer = load_llm()
+        llm = create_pipeline(model, tokenizer)
+        prompt = create_prompt_template()
+        qa_chain = create_retrieval_qa_chain(llm, vector_store, prompt)
+
+        # Example usage
+        response = generate_content(qa_chain, query)
+        return fill(response, width=200)

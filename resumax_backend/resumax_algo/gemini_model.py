@@ -4,7 +4,7 @@ from django.conf import settings
 import pathlib
 import asyncio
 
-async def generateContent(promptText, fileUrls=None):
+async def generate_response(promptText, fileUrls=None):
     '''
     This function generates content using the Gemini API
     '''
