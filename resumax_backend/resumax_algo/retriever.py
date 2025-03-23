@@ -25,6 +25,10 @@ LLM_MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 SCORE_THRESHOLD = 0.2
 
+# At module level  
+_embeddings = None  
+_vector_store = None  
+_llm = None
 
 def load_embeddings(embedding_model_name=EMBEDDING_MODEL_NAME, device=DEVICE):
     """Loads HuggingFace embeddings."""
@@ -68,12 +72,21 @@ def load_llm(model_name=LLM_MODEL_NAME, device=DEVICE):
 
 
 def create_pipeline(model, tokenizer, device=DEVICE):
-    """Creates text generation pipeline."""
+    """Creates text generation pipeline with controlled output parameters.
+    - max_new_tokens=512: Limits response length  
+    - temperature=0.0000001: Near-deterministic outputs  
+    - repetition_penalty=1.11: Reduces word repetition  
+    """ 
     gen_cfg = GenerationConfig.from_pretrained(LLM_MODEL_NAME)
+    # Maximum number of tokens to generate in the response
     gen_cfg.max_new_tokens = 512
+    # Near-zero temperature for more deterministic outputs
     gen_cfg.temperature = 0.0000001
+    # Include prompt in the response
     gen_cfg.return_full_text = True
+    # Enable sampling for more natural text generation
     gen_cfg.do_sample = True
+    # Slightly penalize repetition of words/phrases
     gen_cfg.repetition_penalty = 1.11
 
     pipe = pipeline(
@@ -131,24 +144,22 @@ def generate_content(qa_chain, query):
         clean_result = result['result'].split("<|eot_id|><|start_header_id|>assistant<|end_header_id|>")[-1].strip()
         return clean_result
     except Exception as e:
-        logging.warning("No relevant docs were retrieved using the relevance score threshold.")
+        logging.warning(f"Error generating content: {str(e)}. No relevant docs were retrieved using the relevance score threshold.")
         return "I'm sorry, but I am not trained for that kind of task. Please try a different query."
 
+def initialize_resources():  
+    global _embeddings, _vector_store, _llm  
+    if _embeddings is None:  
+        _embeddings = load_embeddings()  
+        _vector_store = load_vector_store(VECTOR_STORE_PATH, _embeddings)  
+        model, tokenizer = load_llm()  
+        _llm = create_pipeline(model, tokenizer)  
 
-def generate_response(query):
-    # Load resources
-    embeddings = load_embeddings()
-    vector_store = load_vector_store(VECTOR_STORE_PATH, embeddings)
-
-    if vector_store is None:
-        logging.error("Failed to load vector store. Exiting.")
-        return "Failed to load vector store."
-    else:
-        model, tokenizer = load_llm()
-        llm = create_pipeline(model, tokenizer)
-        prompt = create_prompt_template()
-        qa_chain = create_retrieval_qa_chain(llm, vector_store, prompt)
-
-        # Example usage
-        response = generate_content(qa_chain, query)
-        return fill(response, width=200)
+def generate_response(query):  
+    if _vector_store is None:  
+        initialize_resources()  
+    # Use the cached resources  
+    qa_chain = create_retrieval_qa_chain(_llm, _vector_store, create_prompt_template())  
+    # generate content
+    response = generate_content(qa_chain, query)
+    return fill(response, width=200)

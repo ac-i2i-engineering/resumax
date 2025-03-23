@@ -8,9 +8,9 @@ from resumax_algo.gemini_model import generate_response
 from .serializers import AttachedFileSerializer, ConversationSerializer, ConversationsThreadSerializer
 from django.core.files.storage import FileSystemStorage
 from resumax_algo import retriever
+from resumax_backend.settings import USE_RETRIEVAL_BASED_RESPONSE
 import asyncio
 
-USE_RETRIEVER = True
 # Create your views here.
 @login_required
 @api_view(['GET', 'POST'])
@@ -46,7 +46,7 @@ def conversations(request, thread_id):
         if not promptAttachedFiles:
             # Generate response
             try:
-                if USE_RETRIEVER:
+                if USE_RETRIEVAL_BASED_RESPONSE:
                     response = retriever.generate_response(promptText)
                 else:
                     response = asyncio.run(generate_response(promptText))
