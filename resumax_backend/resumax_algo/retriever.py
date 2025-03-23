@@ -5,12 +5,9 @@ import torch
 from textwrap import fill
 from langchain.prompts import PromptTemplate
 import locale
-from langchain_community.document_loaders import UnstructuredURLLoader
 from langchain_community.vectorstores.utils import filter_complex_metadata
 from langchain_community.vectorstores import FAISS
-# from langchain_community.embeddings import HuggingFaceEmbeddings #Deprecated
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
@@ -20,72 +17,32 @@ locale.getpreferredencoding = lambda: "UTF-8"
 # from huggingface_hub import login
 from django.conf import settings
 # login(settings.HUGGINGFACE_API_KEY)
-login("API_KEY")
+login("api_key")
 
-from langchain_community.document_loaders import PyMuPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
-from concurrent.futures import ProcessPoolExecutor, as_completed
 import logging
-# Import the process_loader function from the new file
-from pdf_processing import process_loader
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Get the directory of the current file
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Construct the path to the pdfs directory
-pdfs_dir = os.path.join(current_dir, 'pdfs')
-
-# Get all .pdf files in the pdfs/ directory and subdirectories
-pdf_files = []
-for root, dirs, files in os.walk(pdfs_dir):
-    for file in files:
-        if file.endswith('.pdf'):
-            pdf_files.append(os.path.join(root, file))
-
-# Create loaders for each .pdf file
-loaders = [PyMuPDFLoader(fn) for fn in pdf_files]
-
-chunked_pdf_doc = []
-# print("Loading documents")
-def process_pdf(loader):
-    try:
-        return process_loader(loader)
-    except Exception as e:
-        logging.error(f"Error processing PDF: {e}")
-        return []  # Return an empty list in case of an error
-
 if __name__ == '__main__':
-    # Wrap the main execution block in the `if __name__ == '__main__':` guard
-    with ProcessPoolExecutor(max_workers=10) as executor:  # Reduce workers to avoid memory issues
-        futures = [executor.submit(process_pdf, loader) for loader in loaders]
-        for future in as_completed(futures):
-            logging.info(f"Process {future} completed")
-            chunked_pdf_doc.extend(future.result())
-    # print(len(chunked_pdf_doc))
-    
+    # Specify the directory where the FAISS index and metadata are saved
+    save_directory = "vectordb"
+
     embedding_model_name = "sentence-transformers/all-mpnet-base-v2"
     # Check if CUDA is available
     if torch.cuda.is_available():
         model_kwargs = {"device": "cuda"}
     else:
         model_kwargs = {"device": "cpu"}
-        # print("CUDA not available, using CPU instead.")
+        print("CUDA not available, using CPU instead.")
     embeddings = HuggingFaceEmbeddings(
         model_name=embedding_model_name,
         model_kwargs=model_kwargs,
-        multi_process=False, # set to false to avoid the RuntimeError
+        multi_process=False,
     )
 
-    vector_store = FAISS.from_documents(chunked_pdf_doc, embeddings)
-
-    # Specify the directory where you want to save the FAISS index and metadata
-    save_directory = "faiss_index"
-
-    # Save the FAISS index and metadata to the specified directory
-    vector_store.save_local(save_directory)
+    # Load the FAISS index from the specified directory
+    vector_store = FAISS.load_local(save_directory, embeddings,allow_dangerous_deserialization=True)
 
     # cell 6
     # Define the model
@@ -151,13 +108,7 @@ if __name__ == '__main__':
     {question}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
     """
 
-    prompt_template=prompt_template_llama3
-
-    prompt = PromptTemplate(
-        input_variables=["text"],
-        template=prompt_template,
-    )
-    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
+    prompt = PromptTemplate(template=prompt_template_llama3, input_variables=["context", "question"])
 
     # cell 8
     # Define the retrieval QA chain
@@ -168,7 +119,7 @@ if __name__ == '__main__':
         chain_type_kwargs={"prompt": prompt},
     )
 
-    query = """Does the resume highlight leadership experience effectively?
+    query = """just in direct words, out of 100%, how good is this. you explain why?
 
     Work Experience:
     Software Engineering Intern | Google | Summer 2024
@@ -180,19 +131,6 @@ if __name__ == '__main__':
     - Created practice problems that improved students’ understanding of computational complexity.
     """
     result = Chain_pdf.invoke(query)
-    print(fill(result['result'].strip(), width=200))
-    print("##########################################################################")
-
-    query = """Are the technical skills presented in a way that aligns with industry expectations?
-
-    Work Experience:
-    Software Engineer | Startup XYZ | 2023 - Present
-    - Built RESTful APIs using Django, handling over 100k requests daily.
-    - Developed a CI/CD pipeline that reduced deployment time by 50%.
-
-    Research Assistant | AI Lab | 2022 - 2023
-    - Implemented neural network verification techniques in Python.
-    - Optimized matrix computations, reducing runtime by 40%.
-    """
-    result = Chain_pdf.invoke(query)
-    print(fill(result['result'].strip(), width=200))
+    # Strip out any template artifacts from the result
+    clean_result = result['result'].split("<|eot_id|><|start_header_id|>assistant<|end_header_id|>")[-1].strip()
+    print(fill(clean_result, width=200))
