@@ -148,14 +148,3 @@ def validate_file(file):
 def secure_filename(filename):
     return filename.replace(" ", "_")
 # TODO: add a functionality to vectorize all the messages in the same thread and send them with the prompt to the server
-
-@api_view(['GET'])
-def test(request):
-    if request.method == 'GET':
-        promptText = request.query_params.get("prompt")
-        try:
-            response = retriever.generate_response(promptText)
-        except Exception as e:
-            return Response({"error": str(e)}, status=500)
-        return Response({"response": response})
-    return Response({"error": "Invalid request"}, status=400)
