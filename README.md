@@ -1,4 +1,5 @@
 # ResuMax
+[![Watch the video](https://img.youtube.com/vi/7lgOs64z_08/hqdefault.jpg)](https://www.youtube.com/watch?v=7lgOs64z_08)
 
 ## Overview
 
