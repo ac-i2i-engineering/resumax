@@ -13,6 +13,28 @@ const inputFilesPreviewContainer = document.getElementById("input-files-preview-
 const chatHistoryRangeContainer = document.getElementById("chat-history-range-container");
 const MAX_FILENAME_LENGTH = 10;
 const CSRFTOKEN = getCookie('csrftoken') || document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+// Simple formatting function (alternative to markdown-it)
+// function formatText(text) {
+//   return text
+//     // Convert **bold** to <strong>
+//     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+//     // Convert *italic* to <em>
+//     .replace(/\*(.*?)\*/g, '<em>$1</em>')
+//     // Convert line breaks to <br>
+//     .replace(/\n/g, '<br>')
+//     // Convert bullet points (lines starting with * or -)
+//     .replace(/^[\*\-]\s+(.*)$/gm, '<li>$1</li>')
+//     // Wrap consecutive <li> elements in <ul>
+//     .replace(/(<li>.*<\/li>)(\s*<li>.*<\/li>)*/g, '<ul>$&</ul>')
+//     // Convert numbered lists (lines starting with 1. 2. etc.)
+//     .replace(/^\d+\.\s+(.*)$/gm, '<li>$1</li>')
+//     // Convert ## headers to h3
+//     .replace(/^##\s+(.*)$/gm, '<h3>$1</h3>')
+//     // Convert # headers to h2
+//     .replace(/^#\s+(.*)$/gm, '<h2>$1</h2>');
+// }
+
 // initialize the thread id as a session value
 if (!sessionStorage.getItem("currentThreadId")){
   sessionStorage.setItem("currentThreadId", 0);
@@ -53,7 +75,15 @@ function sendPrompt(promptData) {
     body:promptData,
     };
   fetch("../api/threads/"+currentThreadId+"/", requestOptions)
-  .then((response) => response.json())
+  .then((response) => {
+    if (!response.ok) {
+      return response.json().then(err => {
+        console.error("Server error:", err);
+        throw new Error(`HTTP ${response.status}: ${JSON.stringify(err)}`);
+      });
+    }
+    return response.json();
+  })
   .then((response) => {
     /* if the current thread is 0, reload the threads
     to get the newly created thread and set currentThreadId to the new it's id
@@ -64,7 +94,11 @@ function sendPrompt(promptData) {
     // add the bot response to the chat box
     addBotMessage(response.response);
   })
-  .catch((error) => console.error("Error fetching data:", error));
+  .catch((error) => {
+    console.error("Error fetching data:", error);
+    // Show error message to user
+    addBotMessage("Sorry, there was an error processing your request. Please try again.");
+  });
 }
 
 // handle the textarea formatting on enter key, shift+enter keys, or submitBtn press
@@ -84,6 +118,19 @@ function handleOnSubmitPrompt(event) {
   }
   // get the prompt data from the form
   const promptData = new FormData(promptInputForm);
+  
+  // Debug: log what we're sending
+  console.log("Prompt text:", promptData.get("prompt-text"));
+  console.log("Form data entries:", [...promptData.entries()]);
+  
+  // Validate that we have text
+  const promptText = promptData.get("prompt-text");
+  if (!promptText || !promptText.trim()) {
+    console.error("No prompt text provided");
+    addBotMessage("Please enter a message before sending.");
+    return;
+  }
+  
   // reset the form to its initial state
   promptInputForm.reset()
   textarea.style.height = "auto";
@@ -315,7 +362,20 @@ if(attachedFiles != null && attachedFiles.length > 0 && attachedFiles[0] != ''){
 function addBotMessage(message) {
   const messageElement = document.createElement("div");
   messageElement.classList.add("message", "bot-message");
-  messageElement.textContent = message;
+  // Use simple formatting instead of markdown-it
+  // messageElement.innerHTML = formatText(message);
+  
+  // Or use the markdown-it version (current implementation)
+  const md = window.markdownit({
+    html: false,        // Disable HTML tags in source for security
+    xhtmlOut: false,    // Use '>' for single tags (<br>)
+    breaks: true,       // Convert '\n' in paragraphs into <br>
+    linkify: true,      // Autoconvert URL-like text to links
+    typographer: true   // Enable some language-neutral replacement + quotes beautification
+  });
+  
+  // Convert markdown to HTML and set as innerHTML
+  messageElement.innerHTML = md.render(message);
   chatBox.appendChild(messageElement);
   chatBox.scrollTop = chatBox.scrollHeight;
 }

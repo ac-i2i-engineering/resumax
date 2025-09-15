@@ -16,3 +16,4 @@ pipdeptree
 PyMuPDF
 pytest-cov
 pytest-django
+transformers
