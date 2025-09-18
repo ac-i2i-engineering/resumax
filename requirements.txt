@@ -1,17 +1,12 @@
-accelerate
 appier
 appnope
-bitsandbytes
 black
 coveralls
 django-bootstrap-icons
 django-debug-toolbar
 djangorestframework
-faiss-cpu
 google
 google-genai
-langchain-community
-langchain-huggingface
 pipdeptree
 PyMuPDF
 pytest-cov
