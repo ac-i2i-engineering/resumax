@@ -14,7 +14,9 @@ locale.getpreferredencoding = lambda: "UTF-8"
 
 # from huggingface_hub import login
 from resumax_backend.settings import BASE_DIR,HUGGINGFACE_TOKEN, DEBUG
-login(HUGGINGFACE_TOKEN)
+# Login to Hugging Face Hub
+if HUGGINGFACE_TOKEN:
+    login(HUGGINGFACE_TOKEN)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
