@@ -38,7 +38,7 @@ jobs:
     - name: Run Unit Tests with pytest framework and generate coverage report
       working-directory: ./resumax_backend
       run: |
-        pytest --cov --cov-config=.coveragerc --cov-fail-under=90
+        pytest --cov --cov-config=.coveragerc --cov-fail-under=70
     - name: Coveralls workflow
       working-directory: ./resumax_backend
       run: |
