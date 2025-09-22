@@ -32,13 +32,17 @@ def conversations(request, thread_id):
             }
         return Response(context)
     if request.method == 'POST':
+        # Get and validate prompt text
+        promptText = request.data.get("prompt-text")
+        if not promptText or not promptText.strip():
+            return Response({"error": "Prompt text is required and cannot be empty"}, status=400)
+        
         # Create a new thread if the request thread_id is 0
         if thread_id == 0:       
-            title = request.data.get("prompt-text")[0:20]
+            title = promptText[0:20]
             thread = ConversationsThread.objects.create(title=title, user=user)
             thread_id = thread.id
         # save conversation
-        promptText = request.data.get("prompt-text")
         promptAttachedFiles = request.FILES.getlist("prompt-file")
         # if no file is provided
         if not promptAttachedFiles:
@@ -73,7 +77,12 @@ def conversations(request, thread_id):
         # Generate response
         try:
             # Generate response considering attached files
-            response = asyncio.run(generate_response(promptText, uploaded_file_urls)) 
+            response = asyncio.run(generate_response(promptText, uploaded_file_urls))
+            
+            # Truncate response if it's too long for the database
+            if len(response) > 20000:
+                response = response[:19950] + "... [Response truncated]"
+                
         except Exception as e:
             return Response({"error": str(e)}, status=500)
         # Save conversation to the database

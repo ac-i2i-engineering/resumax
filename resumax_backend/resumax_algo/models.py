@@ -62,8 +62,8 @@ class Conversation(models.Model):
     Chat model to store chat messages in the database for retrieval.
     '''
     thread = models.ForeignKey(ConversationsThread, on_delete=models.CASCADE)
-    prompt = models.TextField(max_length=3000,help_text="The user's prompt",default="")
-    response = models.TextField(max_length=3000,help_text="The bot's response",default="")
+    prompt = models.TextField(max_length=8000,help_text="The user's prompt",default="")
+    response = models.TextField(max_length=20000,help_text="The bot's response",default="")
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return f"Conversation {self.id}"
