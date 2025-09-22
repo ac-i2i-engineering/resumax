@@ -114,5 +114,3 @@ LOGIN_URL = 'login'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-HUGGINGFACE_TOKEN = os.getenv('HUGGINGFACE_TOKEN')
-USE_RETRIEVAL_BASED_RESPONSE = False

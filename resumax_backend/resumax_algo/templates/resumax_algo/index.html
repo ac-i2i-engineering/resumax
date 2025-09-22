@@ -35,7 +35,10 @@
         </div>
       </div>
       <div class="side-panel-footer">
-        {% comment %} TODO// design footer(logout,settings,...) {% endcomment %}
+        {% comment %} Settings and user options {% endcomment %}
+        <p>
+          <a class="settings-btn" href="{% url 'change-password' %}"><span>Change Password</span></a>
+        </p>
         <p>
           <a class="logout-btn" href="{% url 'logout' %}"><span>Logout</span></a>
         </p>

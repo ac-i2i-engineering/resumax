@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.utils.html import strip_tags
@@ -193,3 +193,41 @@ def ResetPassword(request, reset_id):
         return redirect('forgot-password')
 
     return render(request, 'reset_password.html')
+
+def ChangePassword(request):
+    '''
+    ChangePassword function to handle password changes for logged-in users.
+    '''
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        # Validate current password
+        if not request.user.check_password(current_password):
+            messages.error(request, 'Current password is incorrect.')
+            return redirect('change-password')
+        
+        # Validate new password
+        if new_password != confirm_password:
+            messages.error(request, 'New passwords do not match.')
+            return redirect('change-password')
+        
+        if len(new_password) < 8:
+            messages.error(request, 'Password must be at least 8 characters.')
+            return redirect('change-password')
+        
+        # Change password
+        request.user.set_password(new_password)
+        request.user.save()
+        
+        # Keep user logged in after password change
+        update_session_auth_hash(request, request.user)
+        
+        messages.success(request, 'Password changed successfully.')
+        return redirect('home')  # or wherever you want to redirect
+    
+    return render(request, 'change_password.html')
