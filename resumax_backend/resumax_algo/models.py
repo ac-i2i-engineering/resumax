@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_delete, pre_save
+from django.dispatch import receiver
+import os
 
 class Document(models.Model):
     '''
@@ -82,3 +85,48 @@ class AttachedFile(models.Model):
     
     def __str__(self):
         return self.original_filename or f"file {self.id}"
+    
+    def get_full_file_path(self):
+        """Get the full filesystem path to the file"""
+        if self.stored_filename:
+            from django.conf import settings
+            import pathlib
+            return pathlib.Path(settings.MEDIA_ROOT) / self.stored_filename
+        return None
+
+# Signal handlers for automatic file deletion
+@receiver(post_delete, sender=AttachedFile)
+def delete_file_on_model_delete(sender, instance, **kwargs):
+    """
+    Deletes file from filesystem when corresponding `AttachedFile` object is deleted.
+    """
+    file_path = instance.get_full_file_path()
+    if file_path and file_path.exists():
+        try:
+            file_path.unlink()
+            print(f"Successfully deleted file: {file_path}")
+        except Exception as e:
+            print(f"Error deleting file {file_path}: {e}")
+    elif file_path:
+        print(f"File not found for deletion: {file_path}")
+
+@receiver(pre_save, sender=AttachedFile)
+def delete_file_on_change(sender, instance, **kwargs):
+    """
+    Deletes old file from filesystem when corresponding `AttachedFile` object is updated
+    with new file.
+    """
+    if not instance.pk:
+        return False
+
+    try:
+        old_instance = AttachedFile.objects.get(pk=instance.pk)
+        old_file_path = old_instance.get_full_file_path()
+        new_file_path = instance.get_full_file_path()
+        
+        if old_file_path != new_file_path and old_file_path and old_file_path.exists():
+            old_file_path.unlink()
+    except AttachedFile.DoesNotExist:
+        pass
+    except Exception as e:
+        print(f"Error deleting old file: {e}")

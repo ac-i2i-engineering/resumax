@@ -10,6 +10,7 @@ from django.core.files.storage import FileSystemStorage
 import asyncio
 import uuid
 import os
+import mimetypes
 
 # Create your views here.
 @login_required
@@ -122,7 +123,7 @@ def conversations(request, thread_id):
                     "stored_filename": file_data['stored_filename'],
                     "file_path": file_data['file_url'],
                     "file_size": file_data['file_size'],
-                    "file_type": file_data['file_type'],
+                    "file_type": detect_mime_type(file_data['original_filename'], None) or file_data['file_type'],
                     "processing_status": "completed"
                 }
                 fileSerializer = AttachedFileSerializer(data=fileData)
@@ -167,13 +168,61 @@ def delete_thread(request, thread_id):
     return Response({"message": "Thread deleted successfully"}, status=200)
 
 def validate_file(file):  
-    allowed_types = ['application/pdf']  
+    # Define allowed MIME types for different categories
+    allowed_types = {
+        # Document types
+        'application/pdf',
+        'text/plain',
+        'text/markdown', 
+        'text/html',
+        'text/xml',
+        'application/xml',
+        
+        # Image types (supported by Gemini)
+        'image/png',
+        'image/jpeg',
+        'image/webp',
+        'image/heic',
+        'image/heif'
+    }
+    
+    # Define size limits by category (in bytes)
+    if file.content_type.startswith('image/'):
+        max_size = 20 * 1024 * 1024  # 20MB for images
+    else:
+        max_size = 50 * 1024 * 1024  # 50MB for documents
+    
     if file.content_type not in allowed_types:  
-        raise ValidationError('Invalid file type')  
-    if file.size > 5242880:  # 5MB limit  
-        raise ValidationError('File too large')  
+        raise ValidationError(f'Invalid file type: {file.content_type}. Supported types: PDF, images (PNG, JPEG, WEBP, HEIC, HEIF), and text documents.')  
+    
+    if file.size > max_size:  
+        size_mb = max_size / (1024 * 1024)
+        raise ValidationError(f'File too large. Maximum size: {size_mb}MB')  
+    
     return True 
 
 def secure_filename(filename):
     return filename.replace(" ", "_")
+
+def get_file_category(content_type):
+    """Determine file category based on MIME type"""
+    if content_type.startswith('image/'):
+        return 'image'
+    elif content_type == 'application/pdf':
+        return 'document'
+    elif content_type.startswith('text/'):
+        return 'text'
+    else:
+        return 'document'  # Default fallback
+
+def detect_mime_type(filename, uploaded_file=None):
+    """Detect MIME type from filename and uploaded file"""
+    # First try to get from uploaded file
+    if uploaded_file and hasattr(uploaded_file, 'content_type') and uploaded_file.content_type:
+        return uploaded_file.content_type
+    
+    # Fallback to filename detection
+    mime_type, _ = mimetypes.guess_type(filename)
+    return mime_type or 'application/octet-stream'
+
 # TODO: add a functionality to vectorize all the messages in the same thread and send them with the prompt to the server

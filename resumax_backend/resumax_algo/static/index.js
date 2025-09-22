@@ -159,7 +159,13 @@ function addInputFieldFilePreview(index) {
   const fileName = document.createElement("span");
   const removeFileBtn = document.createElement("i");
   fileIconContainer.classList.add("file-icon-container");
-  fileIcon.classList.add("bi", "bi-file-earmark-pdf", "file-type-preview-icon");
+  
+  // Determine file type icon based on file extension
+  const file = attachedFiles.files[index];
+  const fileExtension = file.name.split('.').pop().toLowerCase();
+  const iconClass = getFileTypeIcon(fileExtension);
+  
+  fileIcon.classList.add("bi", iconClass, "file-type-preview-icon");
   fileName.classList.add("file-name");
   removeFileBtn.classList.add("bi", "bi-x", "remove-file-btn");
   fileName.textContent = formatPreviewFileName(attachedFiles.files[index].name);
@@ -175,13 +181,42 @@ function addConversationFilePreview(name) {
   const fileIcon = document.createElement("i");
   const fileName = document.createElement("span");
   fileIconContainer.classList.add("file-icon-container");
-  fileIcon.classList.add("bi", "bi-file-earmark-pdf", "file-type-preview-icon");
+  
+  // Determine file type icon based on file extension
+  const fileExtension = name.split('.').pop().toLowerCase();
+  const iconClass = getFileTypeIcon(fileExtension);
+  
+  fileIcon.classList.add("bi", iconClass, "file-type-preview-icon");
   fileName.classList.add("file-name");
   fileName.textContent = formatPreviewFileName(name);
   fileIconContainer.appendChild(fileIcon);
   fileIconContainer.appendChild(fileName);
   return fileIconContainer;
 }
+
+function getFileTypeIcon(fileExtension) {
+  // Return appropriate Bootstrap icon class based on file extension
+  switch (fileExtension) {
+    case 'pdf':
+      return 'bi-file-earmark-pdf';
+    case 'png':
+    case 'jpg':
+    case 'jpeg':
+    case 'webp':
+    case 'heic':
+    case 'heif':
+      return 'bi-file-earmark-image';
+    case 'txt':
+    case 'md':
+      return 'bi-file-earmark-text';
+    case 'html':
+    case 'xml':
+      return 'bi-file-earmark-code';
+    default:
+      return 'bi-file-earmark';
+  }
+}
+
 function deleteInputFile(index) {
   const files = Array.from(attachedFiles.files);
   const dataTransfer = new DataTransfer();
