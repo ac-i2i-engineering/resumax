@@ -167,5 +167,7 @@ cython_debug/
 *env*
 
 # media
-media/
+user_uploads/
 .vscode/
+base_knowledge/
+user_uploads/

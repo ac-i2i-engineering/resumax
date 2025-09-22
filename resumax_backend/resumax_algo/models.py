@@ -64,13 +64,21 @@ class Conversation(models.Model):
     thread = models.ForeignKey(ConversationsThread, on_delete=models.CASCADE)
     prompt = models.TextField(max_length=8000,help_text="The user's prompt",default="")
     response = models.TextField(max_length=20000,help_text="The bot's response",default="")
+    internal_analysis = models.TextField(help_text="Internal analysis for the conversation",default="")
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return f"Conversation {self.id}"
 
 class AttachedFile(models.Model):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
-    fileName = models.TextField(max_length=500,help_text="The file path",default="")
+    original_filename = models.CharField(max_length=255, help_text="Original file name", default="")
+    stored_filename = models.CharField(max_length=255, help_text="Stored file name", default="")
+    file_path = models.CharField(max_length=500, help_text="File path", default="")
+    file_size = models.BigIntegerField(help_text="File size in bytes", default=0)
+    file_type = models.CharField(max_length=100, help_text="File type/MIME type", default="")
+    processing_status = models.CharField(max_length=20, help_text="Processing status", default="pending")
+    error_message = models.TextField(help_text="Error message if any", default="")
     created_at = models.DateTimeField(auto_now_add=True)
+    
     def __str__(self):
-        return self.fileName or f"file {self.id}"
+        return self.original_filename or f"file {self.id}"

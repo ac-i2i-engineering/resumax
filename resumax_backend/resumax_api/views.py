@@ -8,6 +8,8 @@ from resumax_algo.gemini_model import generate_response
 from .serializers import AttachedFileSerializer, ConversationSerializer, ConversationsThreadSerializer
 from django.core.files.storage import FileSystemStorage
 import asyncio
+import uuid
+import os
 
 # Create your views here.
 @login_required
@@ -25,7 +27,7 @@ def conversations(request, thread_id):
                     {
                         "prompt": conversation.prompt,
                         "response": conversation.response,
-                        "attachedFiles": [ attachedFile.fileName for attachedFile in AttachedFile.objects.filter(conversation=conversation.id)]
+                        "attachedFiles": [ attachedFile.original_filename for attachedFile in AttachedFile.objects.filter(conversation=conversation.id)]
                     }
                     for conversation in Conversation.objects.filter(thread=currentThread)
                 ]
@@ -65,19 +67,36 @@ def conversations(request, thread_id):
             # Return response
             return Response({"response": response})
         # # if file is provided
-        #upload file to media folder
-        uploaded_file_urls = [] 
+        #upload file to user_uploads folder (configured in settings) with user-specific directories
+        uploaded_file_data = []  # Store both original and stored filenames
         for promptAttachedFile in promptAttachedFiles:
             validate_file(promptAttachedFile)
-            # sanitize file name    
-            safe_filename = secure_filename(promptAttachedFile.name)
+            # Get file extension
+            file_extension = os.path.splitext(promptAttachedFile.name)[1]
+            # Generate unique filename while preserving extension
+            unique_filename = f"{uuid.uuid4().hex}{file_extension}"
+            
+            # Create user-specific directory structure within MEDIA_ROOT
+            user_dir = f"user_{user.id}"
+            user_upload_path = os.path.join(user_dir, unique_filename)
+            
+            # Use default FileSystemStorage (uses settings.MEDIA_ROOT and MEDIA_URL)
             fs = FileSystemStorage()
-            filename = fs.save(safe_filename, promptAttachedFile)
-            uploaded_file_urls.append(fs.url(filename))
+            stored_filename = fs.save(user_upload_path, promptAttachedFile)
+            file_url = fs.url(stored_filename)
+            
+            uploaded_file_data.append({
+                'original_filename': promptAttachedFile.name,
+                'stored_filename': stored_filename,
+                'file_url': file_url,
+                'file_size': promptAttachedFile.size,
+                'file_type': promptAttachedFile.content_type
+            })
         # Generate response
         try:
             # Generate response considering attached files
-            response = asyncio.run(generate_response(promptText, uploaded_file_urls))
+            file_urls = [file_data['file_url'] for file_data in uploaded_file_data]
+            response = asyncio.run(generate_response(promptText, file_urls))
             
             # Truncate response if it's too long for the database
             if len(response) > 20000:
@@ -95,18 +114,24 @@ def conversations(request, thread_id):
         if promptSerializer.is_valid():
             conversation = promptSerializer.save()
             # save files to the database
-            fileNames = [ url.split("/")[-1] for url in uploaded_file_urls]
-            for fileName in fileNames:
+            original_filenames = []
+            for file_data in uploaded_file_data:
                 fileData = {
                     "conversation": conversation.id, 
-                    "fileName": fileName
+                    "original_filename": file_data['original_filename'],
+                    "stored_filename": file_data['stored_filename'],
+                    "file_path": file_data['file_url'],
+                    "file_size": file_data['file_size'],
+                    "file_type": file_data['file_type'],
+                    "processing_status": "completed"
                 }
                 fileSerializer = AttachedFileSerializer(data=fileData)
                 if fileSerializer.is_valid():
-                    fileSerializer.save() 
+                    fileSerializer.save()
+                    original_filenames.append(file_data['original_filename'])
                 else:               
                     return Response({"error": fileSerializer.errors}, status=400)
-            return Response({"response": response, "attachedFiles": fileNames})
+            return Response({"response": response, "attachedFiles": original_filenames})
         else:
             return Response({"error": promptSerializer.errors}, status=400)
     

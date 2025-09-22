@@ -2,6 +2,7 @@ appier
 appnope
 black
 coveralls
+Django==5.2.6
 django-bootstrap-icons
 django-debug-toolbar
 djangorestframework

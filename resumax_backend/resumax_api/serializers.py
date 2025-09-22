@@ -13,5 +13,5 @@ class ConversationSerializer(serializers.ModelSerializer):
 class AttachedFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = AttachedFile
-        fields = ['conversation', 'fileName']
+        fields = ['conversation', 'original_filename', 'stored_filename', 'file_path', 'file_size', 'file_type', 'processing_status', 'error_message']
     

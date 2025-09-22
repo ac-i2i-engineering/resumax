@@ -111,6 +111,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # URL to redirect authenticated users to when they attempt to access a view that requires login
 LOGIN_URL = 'login'
 # URL for media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/user_uploads/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'user_uploads')
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')

@@ -15,9 +15,15 @@ async def generate_response(promptText, fileUrls=None):
             contents=promptText
         )
         return response.text
-    # Retrieve and encode the PDF byte
+        
+    # Convert URLs to actual file paths using MEDIA_ROOT
+    file_paths = []
+    for fileUrl in fileUrls:
+        # Remove the MEDIA_URL prefix and construct the full file path
+        relative_path = fileUrl.replace(settings.MEDIA_URL, '')
+        full_path = pathlib.Path(settings.MEDIA_ROOT) / relative_path
+        file_paths.append(full_path)
     
-    file_paths = [pathlib.Path(str(settings.BASE_DIR) + fileUrl) for fileUrl in fileUrls]  # Assuming `fileUrls` is a list of file paths
     read_file_tasks = [read_file_async(fp) for fp in file_paths]
     file_contents = await asyncio.gather(*read_file_tasks)
     file_parts = [types.Part.from_bytes(data=content, mime_type='application/pdf') for content in file_contents]
