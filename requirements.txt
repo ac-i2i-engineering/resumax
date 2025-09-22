@@ -11,3 +11,4 @@ pipdeptree
 PyMuPDF
 pytest-cov
 pytest-django
+python-dotenv
