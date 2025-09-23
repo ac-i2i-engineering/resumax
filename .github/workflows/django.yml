@@ -30,18 +30,23 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Create a virtual environment
-      run: python -m venv .venv
-    - name: Activate virtual environment
-      run: source .venv/bin/activate
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+    - name: Set environment variables
+      run: |
+        echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> $GITHUB_ENV
+        echo "DJANGO_SETTINGS_MODULE=resumax_backend.settings" >> $GITHUB_ENV
+        echo "PYTHONPATH=/home/runner/work/resumax/resumax/resumax_backend" >> $GITHUB_ENV
+    - name: Run Django migrations
+      working-directory: ./resumax_backend
+      run: |
+        python manage.py migrate --run-syncdb
     - name: Run Unit Tests with pytest framework and generate coverage report
       working-directory: ./resumax_backend
       run: |
-        pytest --cov --cov-config=.coveragerc --cov-fail-under=70
+        pytest --cov --cov-config=.coveragerc --cov-fail-under=70 --tb=short -v
     - name: Coveralls workflow
       working-directory: ./resumax_backend
       run: |

@@ -13,3 +13,5 @@ PyMuPDF
 pytest-cov
 pytest-django
 python-dotenv
+pytest-asyncio
+asgiref
