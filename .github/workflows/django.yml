@@ -16,6 +16,9 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY}}
     strategy:
       max-parallel: 4
       matrix:
@@ -43,9 +46,6 @@ jobs:
       working-directory: ./resumax_backend
       run: |
         coveralls --service=github
-      env:
-         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY}}
     - name: Run Django Compilation CI/CD Tests
       run: |
         python ./resumax_backend/manage.py test
