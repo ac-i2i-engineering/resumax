@@ -2,19 +2,23 @@
 Unit tests for conversation history functionality.
 
 This module tests the conversation history feature with proper mocking
-and database handling.
+and database handling for CI/CD compatibility.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+import asyncio
+from unittest.mock import patch, MagicMock, AsyncMock
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
+from django.urls import reverse
+from django.db import transaction
+from asgiref.sync import sync_to_async
 
-from resumax_algo.models import ConversationsThread, Conversation
+from resumax_algo.models import ConversationsThread, Conversation, AttachedFile
 
 
-class TestConversationModels(TestCase):
-    """Test cases for conversation models."""
+class TestConversationModels(TransactionTestCase):
+    """Test cases for conversation models with transaction handling."""
 
     def setUp(self):
         """Set up test data."""
@@ -30,9 +34,9 @@ class TestConversationModels(TestCase):
             user=self.user
         )
         
-        assert thread.title == "Test Thread"
-        assert thread.user == self.user
-        assert thread.created_at is not None
+        self.assertEqual(thread.title, "Test Thread")
+        self.assertEqual(thread.user, self.user)
+        self.assertIsNotNone(thread.created_at)
 
     def test_create_conversation(self):
         """Test creating a conversation."""
@@ -47,10 +51,10 @@ class TestConversationModels(TestCase):
             response="Test response"
         )
         
-        assert conversation.prompt == "Test prompt"
-        assert conversation.response == "Test response"
-        assert conversation.thread == thread
-        assert conversation.created_at is not None
+        self.assertEqual(conversation.prompt, "Test prompt")
+        self.assertEqual(conversation.response, "Test response")
+        self.assertEqual(conversation.thread, thread)
+        self.assertIsNotNone(conversation.created_at)
 
     def test_conversation_thread_relationship(self):
         """Test the relationship between threads and conversations."""
@@ -73,14 +77,14 @@ class TestConversationModels(TestCase):
         )
         
         # Test forward relationship
-        assert conv1.thread == thread
-        assert conv2.thread == thread
+        self.assertEqual(conv1.thread, thread)
+        self.assertEqual(conv2.thread, thread)
         
         # Test reverse relationship
         thread_conversations = list(thread.conversation_set.all().order_by('created_at'))
-        assert len(thread_conversations) == 2
-        assert thread_conversations[0] == conv1
-        assert thread_conversations[1] == conv2
+        self.assertEqual(len(thread_conversations), 2)
+        self.assertEqual(thread_conversations[0], conv1)
+        self.assertEqual(thread_conversations[1], conv2)
 
     def test_conversation_ordering(self):
         """Test that conversations are ordered by creation time."""
@@ -106,9 +110,9 @@ class TestConversationModels(TestCase):
         conversations = Conversation.objects.filter(thread=thread).order_by('created_at')
         conversation_list = list(conversations)
         
-        assert len(conversation_list) == 2
-        assert conversation_list[0] == conv1
-        assert conversation_list[1] == conv2
+        self.assertEqual(len(conversation_list), 2)
+        self.assertEqual(conversation_list[0], conv1)
+        self.assertEqual(conversation_list[1], conv2)
 
     def test_thread_cascade_deletion(self):
         """Test that deleting a thread cascades to conversations."""
@@ -126,13 +130,13 @@ class TestConversationModels(TestCase):
         thread_id = thread.id
         
         # Verify conversation exists
-        assert Conversation.objects.filter(thread_id=thread_id).count() == 1
+        self.assertEqual(Conversation.objects.filter(thread_id=thread_id).count(), 1)
         
         # Delete thread
         thread.delete()
         
         # Verify cascade deletion
-        assert Conversation.objects.filter(thread_id=thread_id).count() == 0
+        self.assertEqual(Conversation.objects.filter(thread_id=thread_id).count(), 0)
 
 
 class TestConversationHistoryLogic(TestCase):
@@ -161,11 +165,11 @@ class TestConversationHistoryLogic(TestCase):
         client3 = _get_genai_client()
         
         # Verify that the constructor was only called once
-        assert mock_client_class.call_count == 1
+        self.assertEqual(mock_client_class.call_count, 1)
         
         # Verify that the same instance is returned
-        assert client1 is client2
-        assert client2 is client3
+        self.assertIs(client1, client2)
+        self.assertIs(client2, client3)
 
     @patch('resumax_algo.gemini_model.genai.Client')
     def test_generate_response_basic_functionality(self, mock_client_class):
@@ -187,8 +191,8 @@ class TestConversationHistoryLogic(TestCase):
         
         # This would need to be tested differently due to async nature
         # For now, we verify the mocks are set up correctly
-        assert mock_client_class.called == False  # Not called yet
-        assert mock_chat.send_message.called == False  # Not called yet
+        self.assertFalse(mock_client_class.called)  # Not called yet
+        self.assertFalse(mock_chat.send_message.called)  # Not called yet
 
     def test_empty_prompt_validation(self):
         """Test validation of empty prompts."""
@@ -198,7 +202,7 @@ class TestConversationHistoryLogic(TestCase):
         try:
             # This would be called differently in real async test
             # For now, we test the validation logic exists
-            assert "" == ""  # Placeholder - would test actual validation
+            self.assertEqual("", "")  # Placeholder - would test actual validation
         except Exception:
             pass
 
@@ -235,25 +239,32 @@ class TestConversationHistoryLogic(TestCase):
                 })
         
         # Verify structure
-        assert len(history) == 2  # user + model messages
+        self.assertEqual(len(history), 2)  # user + model messages
         
         user_msg = history[0]
-        assert user_msg['role'] == 'user'
-        assert user_msg['parts'][0]['text'] == "Hello"
+        self.assertEqual(user_msg['role'], 'user')
+        self.assertEqual(user_msg['parts'][0]['text'], "Hello")
         
         model_msg = history[1]
-        assert model_msg['role'] == 'model'
-        assert model_msg['parts'][0]['text'] == "Hi there!"
+        self.assertEqual(model_msg['role'], 'model')
+        self.assertEqual(model_msg['parts'][0]['text'], "Hi there!")
 
 
 class TestBasicFunctionality(TestCase):
     """Test basic functionality without async complications."""
 
+    def setUp(self):
+        """Set up test data."""
+        self.user = User.objects.create_user(
+            username='testuser_basic',
+            email='test_basic@example.com'
+        )
+
     def test_conversation_model_str_representation(self):
         """Test string representation of models."""
         user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com'
+            username='testuser_str',
+            email='test_str@example.com'
         )
         
         thread = ConversationsThread.objects.create(
@@ -268,10 +279,10 @@ class TestBasicFunctionality(TestCase):
         )
         
         # Test that string representations don't crash
-        assert str(thread) is not None
-        assert str(conversation) is not None
-        assert len(str(thread)) > 0
-        assert len(str(conversation)) > 0
+        self.assertIsNotNone(str(thread))
+        self.assertIsNotNone(str(conversation))
+        self.assertGreater(len(str(thread)), 0)
+        self.assertGreater(len(str(conversation)), 0)
 
     def test_user_thread_relationship(self):
         """Test relationship between users and threads."""
@@ -285,7 +296,37 @@ class TestBasicFunctionality(TestCase):
         user1_threads = ConversationsThread.objects.filter(user=user1)
         user2_threads = ConversationsThread.objects.filter(user=user2)
         
-        assert thread1 in user1_threads
-        assert thread1 not in user2_threads
-        assert thread2 in user2_threads
-        assert thread2 not in user1_threads
+        self.assertIn(thread1, user1_threads)
+        self.assertNotIn(thread1, user2_threads)
+        self.assertIn(thread2, user2_threads)
+        self.assertNotIn(thread2, user1_threads)
+
+    def test_attached_file_model(self):
+        """Test the AttachedFile model with correct field names."""
+        thread = ConversationsThread.objects.create(
+            title="Test Thread",
+            user=self.user
+        )
+        
+        conversation = Conversation.objects.create(
+            thread=thread,
+            prompt="Test prompt",
+            response="Test response"
+        )
+        
+        # Test creating an AttachedFile with correct field names
+        attached_file = AttachedFile.objects.create(
+            conversation=conversation,
+            original_filename="test.pdf",
+            stored_filename="test_stored.pdf",
+            file_path="/path/to/file",
+            file_size=1024,
+            file_type="application/pdf",
+            processing_status="completed"
+        )
+        
+        self.assertEqual(attached_file.original_filename, "test.pdf")
+        self.assertEqual(attached_file.stored_filename, "test_stored.pdf")
+        self.assertEqual(attached_file.file_size, 1024)
+        self.assertEqual(attached_file.conversation, conversation)
+        self.assertIsNotNone(attached_file.created_at)
