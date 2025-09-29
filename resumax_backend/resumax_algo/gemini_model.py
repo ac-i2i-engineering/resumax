@@ -9,6 +9,7 @@ from . import system_instructions
 from .models import ConversationsThread, Conversation
 from pathlib import Path
 import threading
+import os
 
 
 # Module-level client instance for reuse across functions
@@ -43,6 +44,21 @@ async def _get_or_create_chat_session(thread_id=None, user_id=None):
     client = _get_genai_client()
     system_content = system_instructions.SYSTEM_PROMPT
     history = await _get_conversation_history(thread_id) if thread_id else None
+    
+    # Add context files as the first message in history
+    context_file_uris = upload_base_knowledge_files()
+    context_parts = [
+        types.Part.from_uri(file_uri=uri, mime_type="application/pdf")
+        for uri in context_file_uris
+    ]
+    # You can add a clarifying text part if you want
+    context_parts.append(types.Part.from_text(text="These are reference documents for best practices. Use them as guidelines."))
+    context_message = {
+        'role': 'user',
+        'parts': context_parts
+    }
+    history = [context_message] + history
+    
     chat = client.chats.create(
         model='models/gemini-2.5-flash',
         config={"system_instruction": system_content},
@@ -161,3 +177,18 @@ async def _process_file_uploads(fileUrls):
                 print(f"Error uploading {file_path.name}: {e}")
     
     return file_parts
+
+def upload_base_knowledge_files():
+    """Upload all files in the base_knowledge folder to Gemini and return their URIs."""
+    base_knowledge_dir = os.path.join(settings.BASE_DIR, 'base_knowledge')
+    client = _get_genai_client()
+    context_file_uris = []
+    for filename in os.listdir(base_knowledge_dir):
+        file_path = os.path.join(base_knowledge_dir, filename)
+        if os.path.isfile(file_path):
+            try:
+                uploaded = client.files.upload(file=pathlib.Path(file_path))
+                context_file_uris.append(uploaded.uri)
+            except Exception as e:
+                print(f"Error uploading {filename}: {e}")
+    return context_file_uris
