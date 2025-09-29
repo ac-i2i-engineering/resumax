@@ -51,7 +51,7 @@ def conversations(request, thread_id):
         if not promptAttachedFiles:
             # Generate response using Gemini
             try:
-                response = asyncio.run(generate_response(promptText, thread_id=thread_id))
+                response = asyncio.run(generate_response(promptText, thread_id=thread_id, user_id=user.id))
             except Exception as e:
                 return Response({"error": str(e)}, status=500)
             # Save conversation to the database
@@ -97,7 +97,7 @@ def conversations(request, thread_id):
         try:
             # Generate response considering attached files
             file_urls = [file_data['file_url'] for file_data in uploaded_file_data]
-            response = asyncio.run(generate_response(promptText, file_urls, thread_id=thread_id))
+            response = asyncio.run(generate_response(promptText, file_urls, thread_id=thread_id, user_id=user.id))
             
             # Truncate response if it's too long for the database
             if len(response) > 20000:

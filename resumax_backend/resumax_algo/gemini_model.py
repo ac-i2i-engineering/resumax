@@ -8,11 +8,16 @@ from asgiref.sync import sync_to_async
 from . import system_instructions
 from .models import ConversationsThread, Conversation
 from pathlib import Path
+import threading
+import os
 
 
 # Module-level client instance for reuse across functions
 _client = None
 
+# Thread-safe in-memory store for chat sessions (per user, per thread)
+_chat_sessions = {}
+_chat_sessions_lock = threading.Lock()
 
 def _get_genai_client():
     """Get or create a shared GenAI client instance"""
@@ -24,38 +29,44 @@ def _get_genai_client():
     return _client
 
 
-async def _get_or_create_chat_session(thread_id=None):
-    """Get chat session with conversation history from database"""
+def _get_session_key(thread_id, user_id):
+    """Return a unique key for the chat session store."""
+    return (user_id, thread_id)
+
+async def _get_or_create_chat_session(thread_id=None, user_id=None):
+    """Get or create a persistent Gemini chat session for a user and thread."""
+    if not thread_id or not user_id:
+        raise Exception("Both thread_id and user_id are required for session persistence.")
+    key = _get_session_key(thread_id, user_id)
+    with _chat_sessions_lock:
+        if key in _chat_sessions:
+            return _chat_sessions[key]
     client = _get_genai_client()
+    system_content = system_instructions.SYSTEM_PROMPT
+    history = await _get_conversation_history(thread_id) if thread_id else None
     
-    try:
-        # Create chat session with system instruction (text only)
-        system_content = system_instructions.SYSTEM_PROMPT
-        
-        # Get conversation history if thread_id provided
-        history = await _get_conversation_history(thread_id) if thread_id else None
-        
-        # Debug: Print history information
-        if history:
-            print(f"🔄 Loading {len(history)} history messages for thread {thread_id}")
-            for i, msg in enumerate(history):
-                role = msg.get('role', 'unknown')
-                text_preview = msg['parts'][0].get('text', 'no content')[:50] if msg['parts'] else 'no content'
-                print(f"  {i+1}. {role}: {text_preview}...")
-            print(f"📋 Full history structure: {history}")
-        else:
-            print(f"📝 No history found for thread {thread_id}" if thread_id else "🆕 New conversation (no thread_id)")
-        
-        chat = client.chats.create(
-            model='gemini-1.5-flash',
-            config={"system_instruction": system_content},
-            history=history
-        )
-            
-        return chat
-        
-    except Exception as e:
-        raise Exception(f"Failed to create chat session: {e}")
+    # Add context files as the first message in history
+    context_file_uris = upload_base_knowledge_files()
+    context_parts = [
+        types.Part.from_uri(file_uri=uri, mime_type="application/pdf")
+        for uri in context_file_uris
+    ]
+    # You can add a clarifying text part if you want
+    context_parts.append(types.Part.from_text(text="These are reference documents for best practices. Use them as guidelines."))
+    context_message = {
+        'role': 'user',
+        'parts': context_parts
+    }
+    history = [context_message] + history
+    
+    chat = client.chats.create(
+        model='models/gemini-2.5-flash',
+        config={"system_instruction": system_content},
+        history=history
+    )
+    with _chat_sessions_lock:
+        _chat_sessions[key] = chat
+    return chat
 
 
 @sync_to_async
@@ -128,28 +139,20 @@ def _process_file_url(file_url):
     return None
 
 
-async def generate_response(promptText, fileUrls=None, thread_id=None):
-    """Generate content using Gemini Chat API"""
+async def generate_response(promptText, fileUrls=None, thread_id=None, user_id=None):
+    """Generate content using Gemini Chat API with persistent chat session."""
     if not promptText or not promptText.strip():
         raise Exception("Prompt text cannot be empty")
-    
     try:
-        chat = await _get_or_create_chat_session(thread_id)
-        
+        chat = await _get_or_create_chat_session(thread_id, user_id)
         message_parts = [types.Part.from_text(text=promptText)]
-        
-        # Handle file uploads if provided
         if fileUrls:
             file_parts = await _process_file_uploads(fileUrls)
             message_parts.extend(file_parts)
-        
         response = chat.send_message(message_parts)
-        
         if not response or not response.text:
             raise Exception("Empty response from Gemini API")
-            
         return response.text
-        
     except Exception as e:
         raise Exception(f"Content generation failed: {e}")
 
@@ -174,3 +177,18 @@ async def _process_file_uploads(fileUrls):
                 print(f"Error uploading {file_path.name}: {e}")
     
     return file_parts
+
+def upload_base_knowledge_files():
+    """Upload all files in the base_knowledge folder to Gemini and return their URIs."""
+    base_knowledge_dir = os.path.join(settings.BASE_DIR, 'base_knowledge')
+    client = _get_genai_client()
+    context_file_uris = []
+    for filename in os.listdir(base_knowledge_dir):
+        file_path = os.path.join(base_knowledge_dir, filename)
+        if os.path.isfile(file_path):
+            try:
+                uploaded = client.files.upload(file=pathlib.Path(file_path))
+                context_file_uris.append(uploaded.uri)
+            except Exception as e:
+                print(f"Error uploading {filename}: {e}")
+    return context_file_uris
