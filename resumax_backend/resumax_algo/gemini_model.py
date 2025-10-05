@@ -54,7 +54,7 @@ async def _get_or_create_chat_session(thread_id=None):
             
         return chat
         
-    except Exception as e:  
+    except Exception as e:
         raise Exception(f"Failed to create chat session: {e}")
 
 
