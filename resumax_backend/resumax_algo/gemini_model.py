@@ -47,14 +47,14 @@ async def _get_or_create_chat_session(thread_id=None):
             print(f"📝 No history found for thread {thread_id}" if thread_id else "🆕 New conversation (no thread_id)")
         
         chat = client.chats.create(
-            model='gemini-1.5-flash',
+            model='gemini-2.5-flash',
             config={"system_instruction": system_content},
             history=history
         )
             
         return chat
         
-    except Exception as e:
+    except Exception as e:  
         raise Exception(f"Failed to create chat session: {e}")
 
 
