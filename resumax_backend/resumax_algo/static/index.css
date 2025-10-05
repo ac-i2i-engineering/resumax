@@ -211,7 +211,9 @@ body {
   border-bottom: 1px solid var(--gray-200);
   display: flex;
   flex-direction: column;
+  width: -moz-available;
   width: -webkit-fill-available;
+  width: fill-available;
   background-color: var(--gray-50);
   gap: 0.75rem; /* Consistent spacing between messages */
 }
@@ -406,7 +408,9 @@ body {
   gap: 0.75rem;
   justify-content: center;
   align-items: flex-end;
+  width: -moz-available;
   width: -webkit-fill-available;
+  width: fill-available;
   transition: all 0.3s ease;
 }
 
@@ -471,7 +475,7 @@ body {
   cursor: not-allowed;
   transform: none;
 }
-.logout-btn {
+.logout-btn, .password-reset-btn {
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
@@ -480,7 +484,7 @@ body {
   transition: background-color .7s ease;
 }
 
-.logout-btn:hover {
+.logout-btn:hover, .password-reset-btn:hover {
   background-color: var(--blue-700);
 }
 #chat-input-text {
