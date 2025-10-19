@@ -52,8 +52,8 @@
             <h1 class="nav-app-name active">ResuMax</h1>
             <div class="user-section">
               <p>{{ user.username }}</p>
-              <!--Profile Picture drop down menu-->            
-              <img src="{% static 'images/profile-pic.png' %}"  class="user-picture" onclick="toggleMenu()">
+              <!--Profile Picture drop down menu. My Profile and Logout button -->            
+              <img src="{% static 'images/profile-pic.png' %}"  class="user-picture" id="profile-menu-trigger">
             </div>
             <div class="sub-menu-wrap" id="subMenu">
               <div class="sub-menu">
@@ -62,12 +62,12 @@
                   <h3>{{ user.username }}</h3>
                 </div>
                 <hr>
-                <a href="" class="sub-menu-link">
+                <a href="#" class="sub-menu-link">
                  <img src="{% static 'images/profile-pic.png' %}"> 
                  <p>My Profile</p>
                  <span>></span>
                 </a>
-                <a href="http://127.0.0.1:8000/auth/login/" class="sub-menu-link">
+                <a href="{% url 'login' %}" class="sub-menu-link">
                  <img src="{% static 'images/logout.png' %}"> 
                   <p>Logout</p>
                  <span>></span>
@@ -119,12 +119,6 @@
     </main>
     <div id="side-panel-backdrop"></div>
     <script src="{% static 'index.js' %}"></script>
-    <script>
-      let subMenu= document.getElementById("subMenu");
-
-      function toggleMenu(){
-        subMenu.classList.toggle("open-menu");
-      }
-    </script>
+    
   </body>
 </html>
